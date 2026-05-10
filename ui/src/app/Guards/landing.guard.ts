@@ -11,10 +11,11 @@ export const LandingGuard: CanActivateFn = (): Observable<
 
   return authService.isLoggedIn$.pipe(
     map((isLoggedIn) => {
-      if (!isLoggedIn) {
-        return true; // show landing page if NOT logged in
+      if (isLoggedIn) {
+        return router.createUrlTree(['/home']); // Already logged in? Go home.
       } else {
-        return router.createUrlTree(['/home']); // redirect logged-in users
+        // Force automatic login check (The Office 365 Dream)
+        return true;
       }
     }),
   );
