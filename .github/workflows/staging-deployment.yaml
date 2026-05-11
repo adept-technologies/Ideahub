@@ -140,7 +140,56 @@ jobs:
             || (echo "Health check failed" && exit 1)
 
   # ============================================================
-  # 4. MANUAL APPROVAL GATE
+  # 4. OWASP ZAP DAST SCAN
+  #    Runs on the self-hosted runner to scan the application
+  #    actively running on localhost:5065.
+  # ============================================================
+  zap-scan:
+    name: OWASP ZAP Authenticated Scan
+    runs-on: self-hosted
+    needs: smoke-tests
+    steps:
+      - name: Obtain JWT Token for Scanning
+        id: auth
+        run: |
+          # Use curl to login to the staging backend and extract the token
+          # We assume the API is at /api/auth/login based on auth.service.ts
+          RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${{ secrets.STAGING_ZAP_USER }}\",\"password\":\"${{ secrets.STAGING_ZAP_PASSWORD }}\"}")
+          
+          # Extract accessToken using jq
+          TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
+          
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Failed to obtain auth token. Response: $RESPONSE"
+            exit 1
+          fi
+          
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Run ZAP Full Scan (with Ajax Spider)
+        # Full scan is better for SPAs as it uses a real browser to find hidden routes
+        # -z "header.Authorization=Bearer ..." injects the token into all API calls
+        run: |
+          docker run --rm --network="host" \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+            -t http://localhost:5065 \
+            -r zap_report.html \
+            -z "header.Authorization=Bearer ${{ steps.auth.outputs.token }}" || true
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-scan-report
+          path: zap_report.html
+
+
+  # ============================================================
+  # 5. MANUAL APPROVAL GATE
+
   #    The workflow pauses here. GitHub emails all required
   #    reviewers configured on the staging-approval Environment.
   #    Nothing proceeds until a reviewer clicks Approve in the
@@ -153,7 +202,7 @@ jobs:
   await-approval:
     name: Await Team Approval
     runs-on: ubuntu-latest
-    needs: [build-and-push, smoke-tests]
+    needs: [build-and-push, smoke-tests, zap-scan]
     environment: staging-approval
 
     steps:
