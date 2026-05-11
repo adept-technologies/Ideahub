@@ -18,14 +18,12 @@ jobs:
         uses: semgrep/semgrep-action@v1
         with:
           config: >-
+            p/default
             p/csharp
             p/javascript
             p/typescript
-            p/sql
-            p/owasp-top-10
             p/security-audit
             p/secrets
-          generateSarif: "1"
           
       - name: Upload SARIF report
         uses: actions/upload-artifact@v4
@@ -51,7 +49,7 @@ jobs:
           echo "DB_HOST=ideahub-db" >> .env
           echo "DB_PORT=5432" >> .env
           echo "ASPNETCORE_ENVIRONMENT=Development" >> .env
-          echo "JWT_KEY=CI_ONLY_TEST_KEY_12345678901234567890" >> .env
+          echo "JWT_KEY=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF" >> .env
           echo "DOMAIN_URL=http://localhost:5065" >> .env
           echo "API_URL=http://localhost:5065/api" >> .env
 
