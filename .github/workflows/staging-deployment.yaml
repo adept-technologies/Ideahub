@@ -162,7 +162,7 @@ jobs:
           TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
           
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Failed to obtain auth token. Response: $RESPONSE"
+            echo "Failed to obtain auth token. API returned an error or empty token."
             exit 1
           fi
           
@@ -170,15 +170,15 @@ jobs:
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
       - name: Run ZAP Full Scan (with Ajax Spider)
-        # Full scan is better for SPAs as it uses a real browser to find hidden routes
-        # -z "header.Authorization=Bearer ..." injects the token into all API calls
+        # Using -e ZAP_AUTH_HEADER for correct authentication injection
         run: |
           docker run --rm --network="host" \
             -v $(pwd):/zap/wrk/:rw \
+            -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
+            -e ZAP_AUTH_HEADER="Authorization" \
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
-            -r zap_report.html \
-            -z "header.Authorization=Bearer ${{ steps.auth.outputs.token }}" || true
+            -r zap_report.html
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
