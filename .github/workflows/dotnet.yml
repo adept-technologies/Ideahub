@@ -35,6 +35,75 @@ jobs:
           path: semgrep.sarif
 
   # ==========================================
+  # EPHEMERAL DAST (ZAP)
+  # ==========================================
+  zap-scan:
+    name: ZAP Baseline Scan (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Dummy .env for CI
+        run: |
+          echo "DB_USER=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+          echo "DB_NAME=ideahub_ci" >> .env
+          echo "DB_HOST=ideahub-db" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "ASPNETCORE_ENVIRONMENT=Development" >> .env
+          echo "JWT_KEY=CI_ONLY_TEST_KEY_12345678901234567890" >> .env
+          echo "DOMAIN_URL=http://localhost:5065" >> .env
+          echo "API_URL=http://localhost:5065/api" >> .env
+
+      - name: Start Application (Docker Compose)
+        run: |
+          docker compose up -d --build
+          
+      - name: Wait for Health Check
+        run: |
+          # Give the DB and API time to start
+          echo "Waiting for app to be ready..."
+          sleep 40
+          curl --fail --retry 10 --retry-delay 5 http://localhost:5065/health || (docker compose logs && exit 1)
+
+      - name: Create CI Test User & Obtain Token
+        id: auth
+        run: |
+          # 1. Register a fresh user inside the ephemeral container
+          curl -s -X POST http://localhost:5065/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"displayName":"CI ZAP", "email":"zap@test.com", "password":"Password123!", "confirmPassword":"Password123!"}'
+          
+          # 2. Login to get the token
+          RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"zap@test.com", "password":"Password123!"}')
+          
+          TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Run ZAP Authenticated Full Scan (CI)
+        # Upgraded to Full Scan with Ajax Spider for maximum thoroughness
+        run: |
+          docker run --rm --network="host" \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+            -t http://localhost:5065 \
+            -r zap_ci_report.html \
+            -z "header.Authorization=Bearer ${{ steps.auth.outputs.token }}" || true
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-ci-report
+          path: zap_ci_report.html
+
+      - name: Stop Application
+        if: always()
+        run: docker compose down
+
+  # ==========================================
   # FRONTEND
   # ==========================================
   frontend-ci:
