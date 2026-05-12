@@ -94,6 +94,10 @@ jobs:
       - name: Create ZAP Auth Hook (on-the-fly)
         run: |
           cat <<EOF > zap-hooks.py
+          def zap_started(zap, target):
+              # Import the OpenAPI definition as soon as ZAP starts
+              zap.openapi.import_url('http://localhost:5065/openapi/v1.json')
+
           def sending_request(zap, msg, is_sender_wildcard):
               import os
               token = os.environ.get('ZAP_AUTH_HEADER_VALUE')
@@ -103,7 +107,7 @@ jobs:
           EOF
 
       - name: Run ZAP Authenticated Full Scan (CI)
-        # Using -O for OpenAPI import and --hook for authentication injection
+        # Using the hook for both OpenAPI import and authentication injection
         run: |
           touch zap_ci_report.html
           chmod 777 zap_ci_report.html
@@ -114,7 +118,6 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
             -I \
-            -O http://localhost:5065/openapi/v1.json \
             --hook /zap/wrk/zap-hooks.py \
             -r zap_ci_report.html
 

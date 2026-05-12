@@ -170,9 +170,12 @@ jobs:
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
       - name: Create ZAP Auth Hook (on-the-fly)
-        # We create the python file dynamically so it doesn't clutter the project root
         run: |
           cat <<EOF > zap-hooks.py
+          def zap_started(zap, target):
+              # Import the OpenAPI definition as soon as ZAP starts
+              zap.openapi.import_url('http://localhost:5065/openapi/v1.json')
+
           def sending_request(zap, msg, is_sender_wildcard):
               import os
               token = os.environ.get('ZAP_AUTH_HEADER_VALUE')
@@ -182,7 +185,6 @@ jobs:
           EOF
 
       - name: Run ZAP Full Scan (with OpenAPI & Hooks)
-        # Using -O for OpenAPI import and --hook for authentication injection
         run: |
           docker run --rm --network="host" \
             -v $(pwd):/zap/wrk/:rw \
@@ -190,7 +192,6 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
             -I \
-            -O http://localhost:5065/openapi/v1.json \
             --hook /zap/wrk/zap-hooks.py \
             -r zap_report.html
 
