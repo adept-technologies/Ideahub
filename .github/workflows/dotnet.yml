@@ -93,17 +93,15 @@ jobs:
 
       - name: Create ZAP Auth Hook (on-the-fly)
         run: |
-          cat > zap-hooks.py << 'ZAPEOF'
-def zap_started(zap, target):
-    zap.openapi.import_url('http://localhost:5065/openapi/v1.json')
-
-def sending_request(zap, msg, is_sender_wildcard):
-    import os
-    token = os.environ.get('ZAP_AUTH_HEADER_VALUE')
-    if token:
-        msg.getRequestHeader().setHeader("Authorization", token)
-    return msg
-ZAPEOF
+          echo "def zap_started(zap, target):" > zap-hooks.py
+          echo "    zap.openapi.import_url('http://localhost:5065/openapi/v1.json')" >> zap-hooks.py
+          echo "" >> zap-hooks.py
+          echo "def sending_request(zap, msg, is_sender_wildcard):" >> zap-hooks.py
+          echo "    import os" >> zap-hooks.py
+          echo "    token = os.environ.get('ZAP_AUTH_HEADER_VALUE')" >> zap-hooks.py
+          echo "    if token:" >> zap-hooks.py
+          echo "        msg.getRequestHeader().setHeader('Authorization', token)" >> zap-hooks.py
+          echo "    return msg" >> zap-hooks.py
 
       - name: Run ZAP Authenticated Full Scan (CI)
         # Using the hook for both OpenAPI import and authentication injection
