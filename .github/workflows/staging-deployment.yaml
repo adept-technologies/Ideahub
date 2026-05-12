@@ -190,7 +190,7 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
             -I \
-            -O http://localhost:5065/swagger/v1/swagger.json \
+            -O http://localhost:5065/openapi/v1.json \
             --hook /zap/wrk/zap-hooks.py \
             -r zap_report.html
 

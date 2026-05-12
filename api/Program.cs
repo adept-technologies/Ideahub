@@ -26,9 +26,8 @@ var builder = WebApplication.CreateBuilder(args);
 //2.1 Controllers Service
 builder.Services.AddControllers();
 
-// Add Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Add OpenAPI (Native .NET 9)
+builder.Services.AddOpenApi();
 
 //2.2 EF Core Service
 var connectionString = builder.Configuration.GetConnectionString("IdeahubString")
@@ -336,14 +335,10 @@ app.UseCors(AllowedOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Enable Swagger
+// Enable OpenAPI
 if (!app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ideahub API V1");
-    });
+    app.MapOpenApi();
 }
 
 app.MapControllers();
