@@ -91,8 +91,19 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
+      - name: Create ZAP Auth Hook (on-the-fly)
+        run: |
+          cat <<EOF > zap-hooks.py
+          def sending_request(zap, msg, is_sender_wildcard):
+              import os
+              token = os.environ.get('ZAP_AUTH_HEADER_VALUE')
+              if token:
+                  msg.getRequestHeader().setHeader("Authorization", token)
+              return msg
+          EOF
+
       - name: Run ZAP Authenticated Full Scan (CI)
-        # Using -e ZAP_AUTH_HEADER for correct authentication injection
+        # Using -O for OpenAPI import and --hook for authentication injection
         run: |
           touch zap_ci_report.html
           chmod 777 zap_ci_report.html
@@ -100,9 +111,11 @@ jobs:
             -u root \
             -v $(pwd):/zap/wrk/:rw \
             -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
-            -e ZAP_AUTH_HEADER="Authorization" \
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
+            -I \
+            -O http://localhost:5065/swagger/v1/swagger.json \
+            --hook /zap/wrk/zap-hooks.py \
             -r zap_ci_report.html
 
       - name: Upload ZAP Report

@@ -169,15 +169,29 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Run ZAP Full Scan (with Ajax Spider)
-        # Using -e ZAP_AUTH_HEADER for correct authentication injection
+      - name: Create ZAP Auth Hook (on-the-fly)
+        # We create the python file dynamically so it doesn't clutter the project root
+        run: |
+          cat <<EOF > zap-hooks.py
+          def sending_request(zap, msg, is_sender_wildcard):
+              import os
+              token = os.environ.get('ZAP_AUTH_HEADER_VALUE')
+              if token:
+                  msg.getRequestHeader().setHeader("Authorization", token)
+              return msg
+          EOF
+
+      - name: Run ZAP Full Scan (with OpenAPI & Hooks)
+        # Using -O for OpenAPI import and --hook for authentication injection
         run: |
           docker run --rm --network="host" \
             -v $(pwd):/zap/wrk/:rw \
             -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
-            -e ZAP_AUTH_HEADER="Authorization" \
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
+            -I \
+            -O http://localhost:5065/swagger/v1/swagger.json \
+            --hook /zap/wrk/zap-hooks.py \
             -r zap_report.html
 
       - name: Upload ZAP Report
