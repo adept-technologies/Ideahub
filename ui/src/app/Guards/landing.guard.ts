@@ -14,7 +14,7 @@ export const LandingGuard: CanActivateFn = (): Observable<
       if (isLoggedIn) {
         return router.createUrlTree(['/home']); // Already logged in? Go home.
       } else {
-        // Force automatic login check (The Office 365 Dream)
+        // Force automatic login check 
         return true;
       }
     }),
