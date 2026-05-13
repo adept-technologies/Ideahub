@@ -183,9 +183,7 @@ jobs:
 
       - name: Debug working directory
         run: |
-          pwd
-          ls -la
-          ls -la zap.conf || echo "zap.conf NOT FOUND"
+          find . -name "zap.conf" 2>/dev/null
 
       - name: Run ZAP Full Scan (with OpenAPI & Hooks)
         run: |
