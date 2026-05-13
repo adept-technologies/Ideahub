@@ -40,3 +40,6 @@ testem.log
 .DS_Store
 Thumbs.db
 /dist
+
+# Local Dev
+proxy.conf.json
