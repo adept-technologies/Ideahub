@@ -23,6 +23,11 @@ var AllowedOrigins = "AllowedOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
 //2. Add Services
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+});
+
 //2.1 Controllers Service
 builder.Services.AddControllers();
 
@@ -323,6 +328,17 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+// Security Headers Middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    await next();
+});
+
 //app.UseHttpsRedirection();
 if (!app.Environment.IsDevelopment())
 {
