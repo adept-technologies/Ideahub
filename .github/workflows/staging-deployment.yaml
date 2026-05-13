@@ -15,7 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/ideahub
+  IMAGE_NAME: adept-technologies/ideahub
 
 jobs:
   # ============================================================
@@ -54,7 +54,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
@@ -73,7 +73,7 @@ jobs:
   # ============================================================
   deploy-staging:
     name: Deploy to Staging Server
-    runs-on: self-hosted
+    runs-on: [ self-hosted, staging ]
     needs: build-and-push
 
     steps:
@@ -85,7 +85,7 @@ jobs:
 
       - name: Log in to GHCR
         run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
       - name: Pull image
         run: |
@@ -108,7 +108,7 @@ jobs:
   # ============================================================
   smoke-tests:
     name: Smoke Tests on Staging
-    runs-on: self-hosted
+    runs-on: [ self-hosted, staging ]
     needs: deploy-staging
 
     steps:
@@ -146,7 +146,7 @@ jobs:
   # ============================================================
   zap-scan:
     name: OWASP ZAP Authenticated Scan
-    runs-on: self-hosted
+    runs-on: [ self-hosted, staging ]
     needs: smoke-tests
     steps:
       - name: Obtain JWT Token for Scanning
