@@ -186,7 +186,7 @@ jobs:
           docker run --rm --network="host" \
             -v $(pwd):/zap/wrk/:rw \
             -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
-            owasp/zap2docker-stable zap-full-scan.py \
+            zaproxy/zap-stable zap-full-scan.py \
             -t http://localhost:5065 \
             -I \
             -c /zap/wrk/zap.conf \
