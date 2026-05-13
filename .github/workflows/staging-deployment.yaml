@@ -140,7 +140,69 @@ jobs:
             || (echo "Health check failed" && exit 1)
 
   # ============================================================
-  # 4. MANUAL APPROVAL GATE
+  # 4. OWASP ZAP DAST SCAN
+  #    Runs on the self-hosted runner to scan the application
+  #    actively running on localhost:5065.
+  # ============================================================
+  zap-scan:
+    name: OWASP ZAP Authenticated Scan
+    runs-on: self-hosted
+    needs: smoke-tests
+    steps:
+      - name: Obtain JWT Token for Scanning
+        id: auth
+        run: |
+          # Use curl to login to the staging backend and extract the token
+          # We assume the API is at /api/auth/login based on auth.service.ts
+          RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${{ secrets.STAGING_ZAP_USER }}\",\"password\":\"${{ secrets.STAGING_ZAP_PASSWORD }}\"}")
+          
+          # Extract accessToken using jq
+          TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
+          
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Failed to obtain auth token. API returned an error or empty token."
+            exit 1
+          fi
+          
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Create ZAP Auth Hook (on-the-fly)
+        run: |
+          echo "def zap_started(zap, target):" > zap-hooks.py
+          echo "    zap.openapi.import_url('http://localhost:5065/openapi/v1.json')" >> zap-hooks.py
+          echo "" >> zap-hooks.py
+          echo "def sending_request(zap, msg, is_sender_wildcard):" >> zap-hooks.py
+          echo "    import os" >> zap-hooks.py
+          echo "    token = os.environ.get('ZAP_AUTH_HEADER_VALUE')" >> zap-hooks.py
+          echo "    if token:" >> zap-hooks.py
+          echo "        msg.getRequestHeader().setHeader('Authorization', token)" >> zap-hooks.py
+          echo "    return msg" >> zap-hooks.py
+
+      - name: Run ZAP Full Scan (with OpenAPI & Hooks)
+        run: |
+          docker run --rm --network="host" \
+            -v $(pwd):/zap/wrk/:rw \
+            -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
+            ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+            -t http://localhost:5065 \
+            -I \
+            -c /zap/wrk/zap.conf \
+            --hook /zap/wrk/zap-hooks.py \
+            -r zap_report.html
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-scan-report
+          path: zap_report.html
+
+
+  # ============================================================
+  # 5. MANUAL APPROVAL GATE
+
   #    The workflow pauses here. GitHub emails all required
   #    reviewers configured on the staging-approval Environment.
   #    Nothing proceeds until a reviewer clicks Approve in the
@@ -153,7 +215,7 @@ jobs:
   await-approval:
     name: Await Team Approval
     runs-on: ubuntu-latest
-    needs: [build-and-push, smoke-tests]
+    needs: [build-and-push, smoke-tests, zap-scan]
     environment: staging-approval
 
     steps:

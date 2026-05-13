@@ -24,8 +24,16 @@ var AllowedOrigins = "AllowedOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
 //2. Add Services
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+});
+
 //2.1 Controllers Service
 builder.Services.AddControllers();
+
+// Add OpenAPI (Native .NET 9)
+builder.Services.AddOpenApi();
 
 //2.2 EF Core Service
 var connectionString = builder.Configuration.GetConnectionString("IdeahubString")
@@ -380,6 +388,20 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+// Security Headers Middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self';");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+    context.Response.Headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
+    context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+    await next();
+});
+
 //app.UseHttpsRedirection();
 if (!app.Environment.IsDevelopment())
 {
@@ -391,6 +413,13 @@ app.UseRouting();
 app.UseCors(AllowedOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Enable OpenAPI
+if (!app.Environment.IsProduction())
+{
+    app.MapOpenApi();
+}
+
 app.MapControllers();
 app.MapHub<api.Hubs.NotificationHub>("/api/hubs/notifications");
 app.MapHealthChecks("/health");
