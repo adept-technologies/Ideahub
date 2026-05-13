@@ -115,6 +115,7 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t http://localhost:5065 \
             -I \
+            -c /zap/wrk/zap.conf \
             --hook /zap/wrk/zap-hooks.py \
             -r zap_ci_report.html
 
