@@ -181,10 +181,16 @@ jobs:
           echo "        msg.getRequestHeader().setHeader('Authorization', token)" >> zap-hooks.py
           echo "    return msg" >> zap-hooks.py
 
+      - name: Debug working directory
+        run: |
+          pwd
+          ls -la
+          ls -la zap.conf || echo "zap.conf NOT FOUND"
+
       - name: Run ZAP Full Scan (with OpenAPI & Hooks)
         run: |
           docker run --rm --network="host" \
-            -v $GITHUB_WORKSPACE:/zap/wrk/:rw \
+            -v $(pwd):/zap/wrk/:rw \
             -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
             zaproxy/zap-stable zap-full-scan.py \
             -t http://localhost:5065 \
