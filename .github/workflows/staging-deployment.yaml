@@ -184,7 +184,7 @@ jobs:
       - name: Run ZAP Full Scan (with OpenAPI & Hooks)
         run: |
           docker run --rm --network="host" \
-            -v $(pwd):/zap/wrk/:rw \
+            -v $GITHUB_WORKSPACE:/zap/wrk/:rw \
             -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
             zaproxy/zap-stable zap-full-scan.py \
             -t http://localhost:5065 \
