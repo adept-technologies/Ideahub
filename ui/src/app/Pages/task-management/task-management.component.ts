@@ -468,11 +468,11 @@ export class TaskManagementComponent implements OnInit {
 
         // Task is created — finalize UI immediately regardless of upload outcome
         this.resetForm();
-        this.loadTasks();
         this.isCreating = false;
 
         if (filesToUpload.length === 0) {
           this.toastService.show('Task created successfully', 'success');
+          this.loadTasks();
           return;
         }
 
@@ -507,6 +507,7 @@ export class TaskManagementComponent implements OnInit {
               'success',
             );
           }
+          this.loadTasks();
           this.loadSelectedTaskMediaCount();
         });
       },
@@ -601,12 +602,12 @@ export class TaskManagementComponent implements OnInit {
           if (this.selectedTask && this.selectedTask.id === this.targetTaskId) {
             this.selectedTask.subTasks.push(newSubTaskData);
           }
-          this.loadTasks(); // Full refresh in background
 
           this.isCreatingSubTask = false;
 
           if (filesToUpload.length === 0) {
             this.toastService.show('Subtask created successfully', 'success');
+            this.loadTasks();
             return;
           }
 
@@ -641,6 +642,7 @@ export class TaskManagementComponent implements OnInit {
                 'success',
               );
             }
+            this.loadTasks();
             this.loadSelectedTaskMediaCount();
           });
         },
