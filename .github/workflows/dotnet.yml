@@ -27,7 +27,7 @@ jobs:
             p/secrets
           generateSarif: "1"
         env:
-          SEMGREP_ARGS: --sarif --output=semgrep.sarif
+          SEMGREP_ARGS: --sarif --output=semgrep.sarif --disable-nosem --error --include '*'
           
       - name: Upload SARIF report
         uses: actions/upload-artifact@v4
