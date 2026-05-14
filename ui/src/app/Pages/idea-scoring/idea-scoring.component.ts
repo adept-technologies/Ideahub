@@ -647,7 +647,7 @@ export class IdeaScoringComponent implements OnInit {
       },
       error: (err) => {
         if (err.status !== 404) console.error('Business Case error:', err);
-      }
+      },
     });
 
     // Load Phase 3: Scoring Dimensions
@@ -707,7 +707,7 @@ export class IdeaScoringComponent implements OnInit {
       },
       error: (err) => {
         if (err.status !== 404) console.error('Scoring Dimensions error:', err);
-      }
+      },
     });
   }
 
@@ -783,9 +783,32 @@ export class IdeaScoringComponent implements OnInit {
       if (val === undefined || val === null || val === '') return 0;
       const sVal = val.toString();
       // Match numbers or labels
-      if (sVal.includes('3') || sVal === 'High' || sVal === 'Strong' || sVal === 'UnderThreeMonths' || sVal === 'HighDifferentiation' || sVal === 'StrongBenefit') return 3;
-      if (sVal.includes('2') || sVal === 'Moderate' || sVal === 'ThreeToSix' || sVal === 'ModerateUniqueness' || sVal === 'ModerateBenefit') return 2;
-      if (sVal.includes('1') || sVal === 'Low' || sVal === 'SixToTwelve' || sVal === 'VeryDifficult' || sVal === 'LowUniqueness' || sVal === 'MinimalBenefit') return 1;
+      if (
+        sVal.includes('3') ||
+        sVal === 'High' ||
+        sVal === 'Strong' ||
+        sVal === 'UnderThreeMonths' ||
+        sVal === 'HighDifferentiation' ||
+        sVal === 'StrongBenefit'
+      )
+        return 3;
+      if (
+        sVal.includes('2') ||
+        sVal === 'Moderate' ||
+        sVal === 'ThreeToSix' ||
+        sVal === 'ModerateUniqueness' ||
+        sVal === 'ModerateBenefit'
+      )
+        return 2;
+      if (
+        sVal.includes('1') ||
+        sVal === 'Low' ||
+        sVal === 'SixToTwelve' ||
+        sVal === 'VeryDifficult' ||
+        sVal === 'LowUniqueness' ||
+        sVal === 'MinimalBenefit'
+      )
+        return 1;
       return 0;
     };
 
