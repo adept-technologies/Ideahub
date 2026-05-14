@@ -17,6 +17,7 @@ jobs:
       - name: Semgrep Scan
         uses: semgrep/semgrep-action@v1
         with:
+          audit: true
           config: >-
             p/default
             p/csharp
