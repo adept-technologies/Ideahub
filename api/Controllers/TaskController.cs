@@ -455,15 +455,33 @@ public class TaskController : ControllerBase
                 return StatusCode(403, ApiResponse.Fail("Not authorized to delete this sub-task."));
             }
 
-            _context.SubTasks.Remove(subTask);
+            await SoftDeleteSubTaskRecursive(subTaskId);
+            
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse.Ok("Sub-task deleted permanently"));
+            return Ok(ApiResponse.Ok("Sub-task deleted successfully"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting sub-task");
-            return StatusCode(500, ApiResponse.Fail("Internal server error"));
+            _logger.LogError(ex, "Error deleting sub-task {id}", subTaskId);
+            return StatusCode(500, ApiResponse.Fail("An error occurred while trying to delete the subtask. If it has many nested children, try deleting them individually first."));
+        }
+    }
+
+    private async Task SoftDeleteSubTaskRecursive(int id)
+    {
+        var task = await _context.SubTasks.FindAsync(id);
+        if (task == null || task.IsDeleted) return;
+
+        task.IsDeleted = true;
+        
+        var children = await _context.SubTasks
+            .Where(st => st.ParentSubTaskId == id && !st.IsDeleted)
+            .ToListAsync();
+
+        foreach (var child in children)
+        {
+            await SoftDeleteSubTaskRecursive(child.Id);
         }
     }
 
