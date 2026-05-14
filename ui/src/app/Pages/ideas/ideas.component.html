@@ -1285,6 +1285,7 @@
         <app-buttons
           [buttonText]="isEditMode ? 'Update Idea' : 'Share Idea'"
           [buttonStyleClass]="'btn-promote'"
+          [disabled]="isSubmitting"
           (click)="
             isEditMode
               ? onUpdateIdeaFromModal(shareIdeaForm.value)
