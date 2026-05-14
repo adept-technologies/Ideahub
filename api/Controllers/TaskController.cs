@@ -456,7 +456,7 @@ public class TaskController : ControllerBase
             }
 
             await SoftDeleteSubTaskRecursive(subTaskId);
-            
+
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.Ok("Sub-task deleted successfully"));
@@ -474,7 +474,7 @@ public class TaskController : ControllerBase
         if (task == null || task.IsDeleted) return;
 
         task.IsDeleted = true;
-        
+
         var children = await _context.SubTasks
             .Where(st => st.ParentSubTaskId == id && !st.IsDeleted)
             .ToListAsync();
