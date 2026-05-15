@@ -394,7 +394,7 @@ app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.auth0.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.auth0.com; frame-ancestors 'self' https://*auth0.com; form-action 'self';");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.auth0.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https: data:; connect-src 'self' https://*.auth0.com; frame-ancestors 'none'; frame-src 'self' https://*auth0.com; form-action 'self';");
     context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
     context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
@@ -427,7 +427,7 @@ app.MapFallbackToFile("index.html");
 // Dynamic configuration endpoint for the frontend
 app.MapGet("/api/config", (IConfiguration config) =>
 {
-    var apiUrl = config["API_URL"] ?? "http://localhost:5065/api";
+    var apiUrl = config["API_URL"] ?? "localhost:5065/api";
     return Results.Ok(new { apiUrl });
 });
 
