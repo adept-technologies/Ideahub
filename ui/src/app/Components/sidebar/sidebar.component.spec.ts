@@ -54,7 +54,9 @@ describe('SidebarComponent', () => {
 
   describe('Navigation Links Rendering', () => {
     it('should render the link to Home (/home)', () => {
-      const homeLink = fixture.debugElement.query(By.css('a[routerLink="/home"]'));
+      const homeLink = fixture.debugElement.query(
+        By.css('a[routerLink="/home"]'),
+      );
       expect(homeLink).toBeTruthy();
 
       const matIcon = homeLink.query(By.css('mat-icon'));
@@ -65,7 +67,9 @@ describe('SidebarComponent', () => {
     });
 
     it('should render the link to Groups (/groups)', () => {
-      const groupsLink = fixture.debugElement.query(By.css('a[routerLink="/groups"]'));
+      const groupsLink = fixture.debugElement.query(
+        By.css('a[routerLink="/groups"]'),
+      );
       expect(groupsLink).toBeTruthy();
 
       const matIcon = groupsLink.query(By.css('mat-icon'));
@@ -76,7 +80,9 @@ describe('SidebarComponent', () => {
     });
 
     it('should render the link to Projects (/projects)', () => {
-      const projectsLink = fixture.debugElement.query(By.css('a[routerLink="/projects"]'));
+      const projectsLink = fixture.debugElement.query(
+        By.css('a[routerLink="/projects"]'),
+      );
       expect(projectsLink).toBeTruthy();
 
       const matIcon = projectsLink.query(By.css('mat-icon'));

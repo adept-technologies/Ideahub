@@ -29,8 +29,10 @@ describe('FooterComponent', () => {
   it('should display the correct brand and copyright statement in the template', () => {
     const currentYear = new Date().getFullYear();
     const footerTextEl = fixture.debugElement.query(By.css('.footer-text'));
-    
+
     expect(footerTextEl).toBeTruthy();
-    expect(footerTextEl.nativeElement.textContent.trim()).toBe(`${currentYear} Ideahub. All Rights Reserved`);
+    expect(footerTextEl.nativeElement.textContent.trim()).toBe(
+      `${currentYear} Ideahub. All Rights Reserved`,
+    );
   });
 });
