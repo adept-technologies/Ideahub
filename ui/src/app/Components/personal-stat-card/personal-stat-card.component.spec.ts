@@ -30,7 +30,9 @@ describe('PersonalStatCardComponent', () => {
 
       const labelEl = fixture.debugElement.query(By.css('.label'));
       expect(labelEl).toBeTruthy();
-      expect(labelEl.nativeElement.textContent.trim()).toBe('Pending Submissions');
+      expect(labelEl.nativeElement.textContent.trim()).toBe(
+        'Pending Submissions',
+      );
     });
 
     it('should display the correct value when it is a number', () => {
@@ -58,9 +60,10 @@ describe('PersonalStatCardComponent', () => {
       const iconComponent = fixture.debugElement.query(By.css('ng-icon'));
       expect(iconComponent).toBeTruthy();
 
-      const nameVal = typeof iconComponent.componentInstance.name === 'function'
-        ? iconComponent.componentInstance.name()
-        : iconComponent.componentInstance.name;
+      const nameVal =
+        typeof iconComponent.componentInstance.name === 'function'
+          ? iconComponent.componentInstance.name()
+          : iconComponent.componentInstance.name;
 
       expect(nameVal).toBe('heroUserGroup');
     });

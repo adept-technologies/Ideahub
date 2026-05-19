@@ -57,11 +57,12 @@ describe('StatCardComponent', () => {
 
       const iconComponent = fixture.debugElement.query(By.css('ng-icon'));
       expect(iconComponent).toBeTruthy();
-      
-      const nameVal = typeof iconComponent.componentInstance.name === 'function'
-        ? iconComponent.componentInstance.name()
-        : iconComponent.componentInstance.name;
-        
+
+      const nameVal =
+        typeof iconComponent.componentInstance.name === 'function'
+          ? iconComponent.componentInstance.name()
+          : iconComponent.componentInstance.name;
+
       expect(nameVal).toBe('heroUsers');
     });
 
@@ -71,13 +72,19 @@ describe('StatCardComponent', () => {
 
       const containerEl = fixture.debugElement.query(By.css('.stat-card'));
       expect(containerEl).toBeTruthy();
-      expect(containerEl.nativeElement.classList.contains('variant-success')).toBeTrue();
+      expect(
+        containerEl.nativeElement.classList.contains('variant-success'),
+      ).toBeTrue();
 
       // Check another variant
       component.variant = 'variant-warning';
       fixture.detectChanges();
-      expect(containerEl.nativeElement.classList.contains('variant-warning')).toBeTrue();
-      expect(containerEl.nativeElement.classList.contains('variant-success')).toBeFalse();
+      expect(
+        containerEl.nativeElement.classList.contains('variant-warning'),
+      ).toBeTrue();
+      expect(
+        containerEl.nativeElement.classList.contains('variant-success'),
+      ).toBeFalse();
     });
   });
 });

@@ -35,7 +35,9 @@ describe('BaseLayoutComponent', () => {
   });
 
   it('should render the sidebar wrapper and sidebar element', () => {
-    const sidebarWrapper = hostFixture.debugElement.query(By.css('.sidebar-wrapper'));
+    const sidebarWrapper = hostFixture.debugElement.query(
+      By.css('.sidebar-wrapper'),
+    );
     const sidebarEl = hostFixture.debugElement.query(By.css('app-sidebar'));
 
     expect(sidebarWrapper).toBeTruthy();
@@ -43,11 +45,15 @@ describe('BaseLayoutComponent', () => {
   });
 
   it('should render projected content inside the main-content container', () => {
-    const mainContentContainer = hostFixture.debugElement.query(By.css('.main-content'));
+    const mainContentContainer = hostFixture.debugElement.query(
+      By.css('.main-content'),
+    );
     expect(mainContentContainer).toBeTruthy();
 
     const projectedEl = hostFixture.debugElement.query(By.css('#test-content'));
     expect(projectedEl).toBeTruthy();
-    expect(projectedEl.nativeElement.textContent.trim()).toBe('Projected Main Body Content');
+    expect(projectedEl.nativeElement.textContent.trim()).toBe(
+      'Projected Main Body Content',
+    );
   });
 });

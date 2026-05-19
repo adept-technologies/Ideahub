@@ -26,24 +26,35 @@ describe('CtaComponent', () => {
 
   describe('Static Content Rendering', () => {
     it('should render the welcome header', () => {
-      const headerEl = fixture.debugElement.query(By.css('.cta-header h1.header-text'));
+      const headerEl = fixture.debugElement.query(
+        By.css('.cta-header h1.header-text'),
+      );
       expect(headerEl).toBeTruthy();
-      expect(headerEl.nativeElement.textContent.trim()).toBe('Welcome To Ideahub');
+      expect(headerEl.nativeElement.textContent.trim()).toBe(
+        'Welcome To Ideahub',
+      );
     });
 
     it('should render the subheader supporting text', () => {
-      const subheaderEl = fixture.debugElement.query(By.css('.cta-subheader p.subheader-text'));
+      const subheaderEl = fixture.debugElement.query(
+        By.css('.cta-subheader p.subheader-text'),
+      );
       expect(subheaderEl).toBeTruthy();
-      expect(subheaderEl.nativeElement.textContent.trim()).toBe('Your Ideas Matter');
+      expect(subheaderEl.nativeElement.textContent.trim()).toBe(
+        'Your Ideas Matter',
+      );
     });
   });
 
   describe('Action Button Rendering', () => {
     it('should render the ButtonsComponent wrapper with registration parameters', () => {
-      const buttonComponentEl = fixture.debugElement.query(By.css('app-buttons'));
+      const buttonComponentEl = fixture.debugElement.query(
+        By.css('app-buttons'),
+      );
       expect(buttonComponentEl).toBeTruthy();
 
-      const buttonInstance = buttonComponentEl.componentInstance as ButtonsComponent;
+      const buttonInstance =
+        buttonComponentEl.componentInstance as ButtonsComponent;
       expect(buttonInstance).toBeTruthy();
       expect(buttonInstance.buttonText).toBe('Click Here To Sign Up');
       expect(buttonInstance.buttonStyleClass).toBe('btn-cta-signup');
