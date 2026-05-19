@@ -31,23 +31,24 @@ describe('NavbarComponent', () => {
       ['login', 'signUp', 'logout'],
       {
         isLoggedIn$: isLoggedInSubject.asObservable(),
-      }
+      },
     );
 
-    mockMembershipService = jasmine.createSpyObj<MembershipNotificationsService>(
-      'MembershipNotificationsService',
-      [],
-      {
-        pendingRequests$: pendingRequestsSubject.asObservable(),
-      }
-    );
+    mockMembershipService =
+      jasmine.createSpyObj<MembershipNotificationsService>(
+        'MembershipNotificationsService',
+        [],
+        {
+          pendingRequests$: pendingRequestsSubject.asObservable(),
+        },
+      );
 
     mockNotificationService = jasmine.createSpyObj<NotificationService>(
       'NotificationService',
       ['fetchUnreadCount'],
       {
         unreadCount$: unreadCountSubject.asObservable(),
-      }
+      },
     );
 
     await TestBed.configureTestingModule({
@@ -56,7 +57,10 @@ describe('NavbarComponent', () => {
         provideRouter([]),
         provideIcons({}),
         { provide: AuthService, useValue: mockAuthService },
-        { provide: MembershipNotificationsService, useValue: mockMembershipService },
+        {
+          provide: MembershipNotificationsService,
+          useValue: mockMembershipService,
+        },
         { provide: NotificationService, useValue: mockNotificationService },
       ],
     }).compileComponents();

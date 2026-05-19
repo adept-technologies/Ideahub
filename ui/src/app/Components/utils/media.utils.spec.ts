@@ -8,7 +8,6 @@ import {
 } from './media.utils';
 
 describe('media.utils library', () => {
-
   describe('formatFileSize function', () => {
     it('should return "0 Bytes" when size is 0', () => {
       expect(formatFileSize(0)).toBe('0 Bytes');

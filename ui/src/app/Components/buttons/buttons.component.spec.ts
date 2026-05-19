@@ -49,7 +49,9 @@ describe('ButtonsComponent', () => {
       fixture.detectChanges();
 
       const buttonEl = fixture.debugElement.query(By.css('button'));
-      expect(buttonEl.nativeElement.classList.contains('btn-primary')).toBeTrue();
+      expect(
+        buttonEl.nativeElement.classList.contains('btn-primary'),
+      ).toBeTrue();
     });
 
     it('should be disabled when the disabled input is true', () => {
@@ -67,7 +69,7 @@ describe('ButtonsComponent', () => {
 
       const buttonEl = fixture.debugElement.query(By.css('button'));
       const spinnerEl = fixture.debugElement.query(By.css('.spinner'));
-      
+
       expect(buttonEl.nativeElement.disabled).toBeTrue();
       expect(spinnerEl).toBeTruthy();
       expect(buttonEl.nativeElement.textContent.trim()).not.toContain('Submit');
@@ -78,7 +80,9 @@ describe('ButtonsComponent', () => {
       fixture.detectChanges();
 
       const buttonEl = fixture.debugElement.query(By.css('button'));
-      expect(buttonEl.nativeElement.getAttribute('title')).toBe('Hover Tooltip');
+      expect(buttonEl.nativeElement.getAttribute('title')).toBe(
+        'Hover Tooltip',
+      );
     });
   });
 
@@ -104,7 +108,9 @@ describe('ButtonsComponent', () => {
       fixture.detectChanges();
 
       const buttonEl = fixture.debugElement.query(By.css('button'));
-      expect(buttonEl.nativeElement.classList.contains('btn-danger')).toBeTrue();
+      expect(
+        buttonEl.nativeElement.classList.contains('btn-danger'),
+      ).toBeTrue();
     });
 
     it('should disable the inner button when disabled input is true', () => {

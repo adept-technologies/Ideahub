@@ -4,7 +4,10 @@ import { EditProjectModalComponent } from './edit-project-modal.component';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { By } from '@angular/platform-browser';
-import { Project, ProjectStatus } from '../../../Interfaces/Projects/project-interface';
+import {
+  Project,
+  ProjectStatus,
+} from '../../../Interfaces/Projects/project-interface';
 
 describe('EditProjectModalComponent', () => {
   let component: EditProjectModalComponent;
@@ -25,7 +28,9 @@ describe('EditProjectModalComponent', () => {
       progress: 45,
     };
 
-    mockDialogRef = jasmine.createSpyObj<MatDialogRef<EditProjectModalComponent>>('MatDialogRef', ['close']);
+    mockDialogRef = jasmine.createSpyObj<
+      MatDialogRef<EditProjectModalComponent>
+    >('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
       imports: [EditProjectModalComponent, NoopAnimationsModule],
@@ -53,7 +58,9 @@ describe('EditProjectModalComponent', () => {
     it('should correctly format status enum keys into human labels', () => {
       expect(component.getStatusLabel(ProjectStatus.Planning)).toBe('Planning');
       expect(component.getStatusLabel(ProjectStatus.Active)).toBe('Active');
-      expect(component.getStatusLabel(ProjectStatus.Completed)).toBe('Completed');
+      expect(component.getStatusLabel(ProjectStatus.Completed)).toBe(
+        'Completed',
+      );
     });
 
     it('should parse valid status enum options in statusOptions getter', () => {
@@ -74,13 +81,17 @@ describe('EditProjectModalComponent', () => {
       component.onCancel();
 
       expect(mockDialogRef.close).toHaveBeenCalledWith();
-      expect(mockDialogRef.close).not.toHaveBeenCalledWith(component.editedProject);
+      expect(mockDialogRef.close).not.toHaveBeenCalledWith(
+        component.editedProject,
+      );
     });
 
     it('should trigger onSave when the Save Changes button is clicked in the template', () => {
       spyOn(component, 'onSave').and.callThrough();
-      
-      const saveButton = fixture.debugElement.query(By.css('mat-dialog-actions button[color="primary"]'));
+
+      const saveButton = fixture.debugElement.query(
+        By.css('mat-dialog-actions button[color="primary"]'),
+      );
       expect(saveButton).toBeTruthy();
 
       saveButton.nativeElement.click();
@@ -91,7 +102,9 @@ describe('EditProjectModalComponent', () => {
     it('should trigger onCancel when the Cancel button is clicked in the template', () => {
       spyOn(component, 'onCancel').and.callThrough();
 
-      const cancelButton = fixture.debugElement.query(By.css('mat-dialog-actions button:not([color])'));
+      const cancelButton = fixture.debugElement.query(
+        By.css('mat-dialog-actions button:not([color])'),
+      );
       expect(cancelButton).toBeTruthy();
 
       cancelButton.nativeElement.click();
@@ -108,7 +121,9 @@ describe('EditProjectModalComponent', () => {
     });
 
     it('should render the project title input as disabled', () => {
-      const titleInput = fixture.debugElement.query(By.css('input[matInput][disabled]'));
+      const titleInput = fixture.debugElement.query(
+        By.css('input[matInput][disabled]'),
+      );
       expect(titleInput).toBeTruthy();
     });
   });

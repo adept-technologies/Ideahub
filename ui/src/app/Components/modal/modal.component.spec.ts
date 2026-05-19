@@ -101,7 +101,9 @@ describe('ModalComponent', () => {
         fixture.detectChanges();
 
         const modalEl = fixture.debugElement.query(By.css('.modal'));
-        expect(modalEl.nativeElement.classList.contains(`modal-${sz}`)).toBeTrue();
+        expect(
+          modalEl.nativeElement.classList.contains(`modal-${sz}`),
+        ).toBeTrue();
       });
     });
 
@@ -113,8 +115,12 @@ describe('ModalComponent', () => {
       const overlayEl = fixture.debugElement.query(By.css('.modal-overlay'));
       const modalEl = fixture.debugElement.query(By.css('.modal'));
 
-      expect(overlayEl.nativeElement.classList.contains('custom-dark-overlay')).toBeTrue();
-      expect(modalEl.nativeElement.classList.contains('custom-modal-layout')).toBeTrue();
+      expect(
+        overlayEl.nativeElement.classList.contains('custom-dark-overlay'),
+      ).toBeTrue();
+      expect(
+        modalEl.nativeElement.classList.contains('custom-modal-layout'),
+      ).toBeTrue();
     });
   });
 
@@ -141,10 +147,12 @@ describe('ModalComponent', () => {
 
     it('should emit closeModal when clicking the overlay with closeOnOverlayClick = true', () => {
       const overlayEl = fixture.debugElement.query(By.css('.modal-overlay'));
-      
+
       // Simulate click specifically on the overlay container
       const event = new MouseEvent('click', { bubbles: true });
-      spyOnProperty(event, 'target', 'get').and.returnValue(overlayEl.nativeElement);
+      spyOnProperty(event, 'target', 'get').and.returnValue(
+        overlayEl.nativeElement,
+      );
       overlayEl.nativeElement.dispatchEvent(event);
 
       expect(closeModalSpy).toHaveBeenCalled();
@@ -152,10 +160,12 @@ describe('ModalComponent', () => {
 
     it('should not emit closeModal when clicking inside the modal content box', () => {
       const modalEl = fixture.debugElement.query(By.css('.modal'));
-      
+
       // Simulate click on the modal container itself
       const event = new MouseEvent('click', { bubbles: true });
-      spyOnProperty(event, 'target', 'get').and.returnValue(modalEl.nativeElement);
+      spyOnProperty(event, 'target', 'get').and.returnValue(
+        modalEl.nativeElement,
+      );
       modalEl.nativeElement.dispatchEvent(event);
 
       expect(closeModalSpy).not.toHaveBeenCalled();
@@ -166,9 +176,11 @@ describe('ModalComponent', () => {
       fixture.detectChanges();
 
       const overlayEl = fixture.debugElement.query(By.css('.modal-overlay'));
-      
+
       const event = new MouseEvent('click', { bubbles: true });
-      spyOnProperty(event, 'target', 'get').and.returnValue(overlayEl.nativeElement);
+      spyOnProperty(event, 'target', 'get').and.returnValue(
+        overlayEl.nativeElement,
+      );
       overlayEl.nativeElement.dispatchEvent(event);
 
       expect(closeModalSpy).not.toHaveBeenCalled();

@@ -15,9 +15,13 @@ describe('ToastComponent', () => {
   beforeEach(async () => {
     toastsSubject = new BehaviorSubject<Toast[]>([]);
 
-    mockToastService = jasmine.createSpyObj<ToastService>('ToastService', ['remove'], {
-      toasts$: toastsSubject.asObservable(),
-    });
+    mockToastService = jasmine.createSpyObj<ToastService>(
+      'ToastService',
+      ['remove'],
+      {
+        toasts$: toastsSubject.asObservable(),
+      },
+    );
 
     await TestBed.configureTestingModule({
       imports: [ToastComponent],
@@ -57,8 +61,16 @@ describe('ToastComponent', () => {
       const toastItems = fixture.debugElement.queryAll(By.css('.toast'));
       expect(toastItems.length).toBe(2);
 
-      expect(toastItems[0].query(By.css('.message')).nativeElement.textContent.trim()).toBe('Operation successful');
-      expect(toastItems[1].query(By.css('.message')).nativeElement.textContent.trim()).toBe('An error occurred');
+      expect(
+        toastItems[0]
+          .query(By.css('.message'))
+          .nativeElement.textContent.trim(),
+      ).toBe('Operation successful');
+      expect(
+        toastItems[1]
+          .query(By.css('.message'))
+          .nativeElement.textContent.trim(),
+      ).toBe('An error occurred');
     });
 
     it('should apply the matching CSS class for each toast type', () => {
@@ -74,9 +86,15 @@ describe('ToastComponent', () => {
 
       const toastItems = fixture.debugElement.queryAll(By.css('.toast'));
 
-      expect(toastItems[0].nativeElement.classList.contains('success')).toBeTrue();
-      expect(toastItems[1].nativeElement.classList.contains('error')).toBeTrue();
-      expect(toastItems[2].nativeElement.classList.contains('warning')).toBeTrue();
+      expect(
+        toastItems[0].nativeElement.classList.contains('success'),
+      ).toBeTrue();
+      expect(
+        toastItems[1].nativeElement.classList.contains('error'),
+      ).toBeTrue();
+      expect(
+        toastItems[2].nativeElement.classList.contains('warning'),
+      ).toBeTrue();
       expect(toastItems[3].nativeElement.classList.contains('info')).toBeTrue();
     });
 
@@ -93,10 +111,18 @@ describe('ToastComponent', () => {
 
       const toastItems = fixture.debugElement.queryAll(By.css('.toast'));
 
-      expect(toastItems[0].query(By.css('.icon')).nativeElement.textContent.trim()).toBe('✓');
-      expect(toastItems[1].query(By.css('.icon')).nativeElement.textContent.trim()).toBe('✕');
-      expect(toastItems[2].query(By.css('.icon')).nativeElement.textContent.trim()).toBe('!');
-      expect(toastItems[3].query(By.css('.icon')).nativeElement.textContent.trim()).toBe('i');
+      expect(
+        toastItems[0].query(By.css('.icon')).nativeElement.textContent.trim(),
+      ).toBe('✓');
+      expect(
+        toastItems[1].query(By.css('.icon')).nativeElement.textContent.trim(),
+      ).toBe('✕');
+      expect(
+        toastItems[2].query(By.css('.icon')).nativeElement.textContent.trim(),
+      ).toBe('!');
+      expect(
+        toastItems[3].query(By.css('.icon')).nativeElement.textContent.trim(),
+      ).toBe('i');
     });
   });
 
@@ -115,7 +141,7 @@ describe('ToastComponent', () => {
 
     it('should call toastService.remove with the correct id when pressing enter on the element', () => {
       const toastEl = fixture.debugElement.query(By.css('.toast'));
-      
+
       const event = new KeyboardEvent('keydown', { key: 'Enter' });
       toastEl.nativeElement.dispatchEvent(event);
 
@@ -124,10 +150,12 @@ describe('ToastComponent', () => {
 
     it('should render correct interactive aria tags and tabindex for accessibility', () => {
       const toastEl = fixture.debugElement.query(By.css('.toast'));
-      
+
       expect(toastEl.nativeElement.getAttribute('tabindex')).toBe('0');
       expect(toastEl.nativeElement.getAttribute('role')).toBe('button');
-      expect(toastEl.nativeElement.getAttribute('aria-label')).toBe('Dismiss toast');
+      expect(toastEl.nativeElement.getAttribute('aria-label')).toBe(
+        'Dismiss toast',
+      );
     });
   });
 });
