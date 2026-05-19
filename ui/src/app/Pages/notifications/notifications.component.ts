@@ -7,7 +7,7 @@ import { GroupMembershipRequest } from '../../Interfaces/Groups/groups-interface
   standalone: true,
   imports: [],
   template: '',
-  styles: []
+  styles: [],
 })
 export class NotificationsComponent {
   requests: GroupMembershipRequest[] = [];
