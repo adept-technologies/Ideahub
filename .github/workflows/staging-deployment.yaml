@@ -225,11 +225,15 @@ jobs:
 
     steps:
       - name: Log approved deployment details
+        env:
+          SAFE_SHA: ${{ needs.build-and-push.outputs.sha_short }}
+          SAFE_IMAGE: ${{ needs.build-and-push.outputs.image_ref }}
+          SAFE_VERSION: ${{ inputs.version || 'not specified — push or schedule trigger' }}
         run: |
           echo "Staging approved. Triggering prod deployment..."
-          echo "SHA: ${{ needs.build-and-push.outputs.sha_short }}"
-          echo "Image: ${{ needs.build-and-push.outputs.image_ref }}"
-          echo "Version: ${{ inputs.version || 'not specified — push or schedule trigger' }}"
+          echo "SHA: $SAFE_SHA"
+          echo "Image: $SAFE_IMAGE"
+          echo "Version: $SAFE_VERSION"
 
       - name: Trigger production deployment
         uses: peter-evans/repository-dispatch@v3
