@@ -34,10 +34,14 @@ jobs:
     steps:
       - name: Resolve inputs (dispatch vs manual)
         id: inputs
+        env:
+          SAFE_SHA: ${{ github.event.client_payload.sha_short || inputs.sha_short }}
+          SAFE_IMAGE: ${{ github.event.client_payload.image_ref || inputs.image_ref }}
+          SAFE_VERSION: ${{ github.event.client_payload.version || inputs.version }}
         run: |
-          SHA="${{ github.event.client_payload.sha_short || inputs.sha_short }}"
-          IMAGE="${{ github.event.client_payload.image_ref || inputs.image_ref }}"
-          VERSION="${{ github.event.client_payload.version || inputs.version }}"
+          SHA="$SAFE_SHA"
+          IMAGE="$SAFE_IMAGE"
+          VERSION="$SAFE_VERSION"
           echo "sha_short=$SHA" >> $GITHUB_OUTPUT
           echo "image_ref=$IMAGE" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -58,10 +62,13 @@ jobs:
           echo "All required secrets present"
 
       - name: Confirm image exists in registry
+        env:
+          ACTOR: ${{ github.actor }}
+          IMAGE_REF: ${{ steps.inputs.outputs.image_ref }}
         run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker manifest inspect ${{ steps.inputs.outputs.image_ref }}
-          echo "Image confirmed: ${{ steps.inputs.outputs.image_ref }}"
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker manifest inspect "$IMAGE_REF"
+          echo "Image confirmed: $IMAGE_REF"
 
     outputs:
       sha_short: ${{ steps.inputs.outputs.sha_short }}
