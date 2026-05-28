@@ -93,7 +93,7 @@ builder.Services.AddAuthentication(options =>
             var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<IdeahubUser>>();
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
-            var email = context.Principal?.FindFirstValue("https://ideahub.api/email")
+            var email = context.Principal?.FindFirstValue(api.Constants.AuthConstants.EmailClaim)
                         ?? context.Principal?.FindFirstValue(ClaimTypes.Email)
                         ?? context.Principal?.FindFirstValue("email");
 
@@ -454,7 +454,7 @@ public class UserSyncClaimsTransformation : IClaimsTransformation
         using var scope = _serviceProvider.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdeahubUser>>();
 
-        var email = principal.FindFirstValue("https://ideahub.api/email")
+        var email = principal.FindFirstValue(api.Constants.AuthConstants.EmailClaim)
                     ?? principal.FindFirstValue(ClaimTypes.Email)
                     ?? principal.FindFirstValue("email");
         if (string.IsNullOrEmpty(email)) return principal;

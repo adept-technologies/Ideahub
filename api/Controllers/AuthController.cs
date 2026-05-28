@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        var email = User.FindFirstValue("https://ideahub.api/email")
+        var email = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim)
                     ?? User.FindFirstValue(ClaimTypes.Email)
                     ?? User.FindFirstValue("email");
 
@@ -591,6 +591,7 @@ public class AuthController : ControllerBase
     }
 
 
+    /* --- SOFT DELETED (Deprecated in favor of Auth0) ---
     [HttpPost("sso-login")]
     public async Task<IActionResult> SsoLogin([FromBody] SsoExchangeDto dto)
     {
@@ -711,6 +712,7 @@ public class AuthController : ControllerBase
             return StatusCode(500, ApiResponse.Fail("An internal error occurred during SSO authentication"));
         }
     }
+    --------------------------------------------------- */
 
     [Authorize]
     [HttpPost("set-initial-password")]

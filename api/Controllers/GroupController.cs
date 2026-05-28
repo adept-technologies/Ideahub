@@ -30,7 +30,7 @@ public class GroupController : ControllerBase
 
     private async Task<IdeahubUser?> ResolveLocalUserAsync()
     {
-        var email = User.FindFirstValue("https://ideahub.api/email")
+        var email = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim)
                     ?? User.FindFirstValue(ClaimTypes.Email)
                     ?? User.FindFirstValue("email");
 
@@ -104,7 +104,7 @@ public class GroupController : ControllerBase
     {
         //Fetch user info
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userEmail = User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
+        var userEmail = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
 
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -278,7 +278,7 @@ public class GroupController : ControllerBase
     public async Task<IActionResult> LeaveGroup(int groupId)
     {
         //Get user info
-        var userEmail = User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
+        var userEmail = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -495,7 +495,7 @@ public class GroupController : ControllerBase
         if (isAMember)
         {
             _logger.LogError("User {userEmail} is already a member of group: {groupName}",
-                User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
+                User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
             return BadRequest(ApiResponse.Fail("User is already a member of the group"));
         }
 
@@ -504,7 +504,7 @@ public class GroupController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("User {userEmail} accepted to group: {groupName}",
-            User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
+            User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
         return Ok(ApiResponse.Ok("User accepted to group"));
     }
 
@@ -560,7 +560,7 @@ public class GroupController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("User {userEmail} request rejected from group: {groupName}",
-            User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
+            User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found", group.Name);
         return Ok(ApiResponse.Ok("User request rejected"));
     }
 
