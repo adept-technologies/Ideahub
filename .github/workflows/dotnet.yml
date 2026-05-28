@@ -1,8 +1,15 @@
 name: Full Stack CI Pipeline
 
 on:
+  push:
+    branches: [ "dev" ]
   pull_request:
-    branches: ["dev"]
+    branches: [ "dev" ]
+
+permissions:
+  security-events: write
+  actions: read
+  contents: read
 
 jobs:
   # ==========================================
@@ -27,12 +34,11 @@ jobs:
         env:
           SEMGREP_ARGS: --sarif --output=semgrep.sarif
 
-      - name: Upload SARIF report
-        uses: actions/upload-artifact@v4
+      - name: Upload SARIF to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          name: semgrep-results
-          path: semgrep.sarif
+          sarif_file: semgrep.sarif
 
   # ==========================================
   # EPHEMERAL DAST (ZAP)
@@ -116,14 +122,61 @@ jobs:
             -I \
             -c /zap/wrk/zap.conf \
             --hook /zap/wrk/zap-hooks.py \
-            -r zap_ci_report.html
+            -r zap_ci_report.html \
+            -J report_json.json
 
-      - name: Upload ZAP Report
+      - name: Upload ZAP HTML Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-ci-report
           path: zap_ci_report.html
+
+      - name: Convert ZAP JSON to SARIF
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          from urllib.parse import urlparse
+          try:
+              with open("report_json.json") as f:
+                  zap = json.load(f)
+          except FileNotFoundError:
+              print("report_json.json not found — ZAP may not have completed. Writing empty SARIF.")
+              zap = {"site": []}
+
+          results = []
+          for site in zap.get("site", []):
+              for alert in site.get("alerts", []):
+                  for instance in alert.get("instances", [{"uri": site.get("@name",""), "method":"","param":"","evidence":""}]):
+                      raw_uri = instance.get("uri", "")
+                      # GitHub Code Scanning requires relative file paths, not http:// URLs.
+                      # Strip the scheme+host so "http://localhost:5065" becomes "/"
+                      parsed = urlparse(raw_uri)
+                      relative_uri = parsed.path.lstrip("/") or "index"
+                      results.append({
+                          "ruleId": str(alert.get("pluginid", "0")),
+                          "message": {"text": alert.get("desc", alert.get("name", ""))},
+                          "locations": [{"physicalLocation": {"artifactLocation": {"uri": relative_uri}}}],
+                          "level": {"High":"error","Medium":"warning","Low":"note","Informational":"none"}.get(alert.get("riskdesc","").split(" ")[0], "none")
+                      })
+
+          sarif = {
+              "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+              "version": "2.1.0",
+              "runs": [{"tool": {"driver": {"name": "OWASP ZAP", "rules": []}}, "results": results}]
+          }
+          with open("results.sarif", "w") as f:
+              json.dump(sarif, f, indent=2)
+          print(f"SARIF written with {len(results)} results.")
+          EOF
+
+      - name: Upload ZAP Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: zap
 
       - name: Stop Application
         if: always()
