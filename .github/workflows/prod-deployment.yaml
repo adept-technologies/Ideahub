@@ -145,42 +145,42 @@ jobs:
 
             echo "Production deployment complete — Version: $VERSION  SHA: $SHA  Image: $IMAGE_REF"
 
-  # # ============================================================
-  # # 4. POST-DEPLOY HEALTH CHECK
-  # # ============================================================
-  # post-deploy-verify:
-  #   name: Post-Deploy Verification
-  #   runs-on: ubuntu-latest
-  #   needs: [pre-deploy-checks, deploy-prod]
+  # ============================================================
+  # 4. POST-DEPLOY HEALTH CHECK
+  # ============================================================
+  post-deploy-verify:
+    name: Post-Deploy Verification
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy-prod]
 
-  #   steps:
-  #     - name: Health check against EC2
-  #       run: |
-  #         echo "Running health check..."
-  #         curl -Lk --fail --retry 5 --retry-delay 5 \
-  #           https://ideahub.adept-techno.co.ke/health \
-  #           && echo "Health check passed" \
-  #           || (echo "Health check failed" && exit 1)
+    steps:
+      - name: Health check against EC2
+        run: |
+          echo "Running health check..."
+          curl -Lk --fail --retry 5 --retry-delay 5 \
+            https://ideahub.adept-techno.co.ke/health \
+            && echo "Health check passed" \
+            || (echo "Health check failed" && exit 1)
 
-  #     - name: Notify on success
-  #       if: success()
-  #       run: |
-  #         echo "Production deployment successful!"
-  #         echo "Version: ${{ needs.pre-deploy-checks.outputs.version }}"
-  #         echo "Image: ${{ needs.pre-deploy-checks.outputs.image_ref }}"
-  #         # Uncomment to post to Slack:
-  #         # curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
-  #         #   -H 'Content-type: application/json' \
-  #         #   --data '{"text":"Deployed ${{ needs.pre-deploy-checks.outputs.version }} to production"}'
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "Production deployment successful!"
+          echo "Version: ${{ needs.pre-deploy-checks.outputs.version }}"
+          echo "Image: ${{ needs.pre-deploy-checks.outputs.image_ref }}"
+          # Uncomment to post to Slack:
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          #   -H 'Content-type: application/json' \
+          #   --data '{"text":"Deployed ${{ needs.pre-deploy-checks.outputs.version }} to production"}'
 
-  #     - name: Rollback instructions on failure
-  #       if: failure()
-  #       run: |
-  #         echo "Post-deploy verification FAILED"
-  #         echo ""
-  #         echo "==== ROLLBACK INSTRUCTIONS ===="
-  #         echo "SSH into EC2 and run:"
-  #         echo "  cd ~/Ideahub"
-  #         echo "  ROLLBACK=\$(cat rollback_image.txt)"
-  #         echo "  IMAGE_REF=\$ROLLBACK docker compose up -d"
-  #         echo "================================"
+      - name: Rollback instructions on failure
+        if: failure()
+        run: |
+          echo "Post-deploy verification FAILED"
+          echo ""
+          echo "==== ROLLBACK INSTRUCTIONS ===="
+          echo "SSH into EC2 and run:"
+          echo "  cd ~/Ideahub"
+          echo "  ROLLBACK=\$(cat rollback_image.txt)"
+          echo "  IMAGE_REF=\$ROLLBACK docker compose up -d"
+          echo "================================"
