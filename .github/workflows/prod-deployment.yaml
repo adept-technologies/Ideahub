@@ -128,6 +128,9 @@ jobs:
             echo "Logging into GHCR..."
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+            echo "Logging into Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
             echo "Pulling image: $IMAGE_REF"
             docker pull "$IMAGE_REF"
 
@@ -139,8 +142,6 @@ jobs:
             echo "Deploying with Docker Compose..."
             cd ~/Ideahub
             IMAGE_REF=$IMAGE_REF docker compose up -d
-            # .env is already in ~/Ideahub/ so Compose picks it up automatically
-            # No --build flag — image is pre-built and pulled from GHCR
 
             echo "Production deployment complete — Version: $VERSION  SHA: $SHA  Image: $IMAGE_REF"
 
