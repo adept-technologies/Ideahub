@@ -115,10 +115,12 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }} # ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }} # full contents of your .pem file
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            set -e
+
             IMAGE_REF="${{ needs.pre-deploy-checks.outputs.image_ref }}"
             SHA="${{ needs.pre-deploy-checks.outputs.sha_short }}"
             VERSION="${{ needs.pre-deploy-checks.outputs.version }}"
