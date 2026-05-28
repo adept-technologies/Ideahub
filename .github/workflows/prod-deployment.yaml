@@ -141,7 +141,7 @@ jobs:
 
             echo "Deploying with Docker Compose..."
             cd ~/Ideahub
-            IMAGE_REF=$IMAGE_REF docker compose --env-file .env up -d
+            IMAGE_REF=$IMAGE_REF docker compose up -d
 
             echo "Production deployment complete — Version: $VERSION  SHA: $SHA  Image: $IMAGE_REF"
 

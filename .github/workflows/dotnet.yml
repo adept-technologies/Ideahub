@@ -24,7 +24,6 @@ jobs:
             p/typescript
             p/security-audit
             p/secrets
-          generateSarif: "1"
         env:
           SEMGREP_ARGS: --sarif --output=semgrep.sarif
 
