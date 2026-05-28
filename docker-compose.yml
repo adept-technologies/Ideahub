@@ -27,6 +27,8 @@ services:
         FRONTEND_CONFIG: ${FRONTEND_CONFIG:-production}
     container_name: ideahub-backend
     environment:
+      AUTH0_DOMAIN: dev-2685h5q7efjt6peh.us.auth0.com
+      AUTH0_AUDIENCE: https://api.ideahub
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_URLS: http://+:5065
       ASPNETCORE_HTTPS_PORTS: 7204
