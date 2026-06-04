@@ -2,7 +2,7 @@ name: Full Stack CI Pipeline
 
 on:
   pull_request:
-    branches: [ "dev" ]
+    branches: ["dev"]
 
 jobs:
   # ==========================================
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Semgrep Scan
         uses: semgrep/semgrep-action@v1
         with:
@@ -25,7 +25,6 @@ jobs:
             p/typescript
             p/security-audit
             p/secrets
-          generateSarif: "1"
         env:
           SEMGREP_ARGS: --sarif --output=semgrep.sarif --disable-nosem --error --include '*'
           
@@ -60,7 +59,7 @@ jobs:
       - name: Start Application (Docker Compose)
         run: |
           docker compose up -d --build
-          
+
       - name: Wait for Health Check
         run: |
           # Give the DB and API time to start
@@ -75,19 +74,19 @@ jobs:
           curl -s -X POST http://localhost:5065/api/auth/register \
             -H "Content-Type: application/json" \
             -d '{"displayName":"CI ZAP", "email":"security-auto-tester@ideahub.local", "password":"Password123!", "confirmPassword":"Password123!"}'
-          
+
           # 2. Login to get the token
           RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
             -H "Content-Type: application/json" \
             -d '{"email":"security-auto-tester@ideahub.local", "password":"Password123!"}')
-          
+
           TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
-          
+
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
             echo "Failed to obtain CI auth token. Response: $RESPONSE"
             exit 1
           fi
-          
+
           # Mask the token and set output
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
@@ -137,31 +136,31 @@ jobs:
   frontend-ci:
     name: Node Validation
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-      
+          node-version: "20.x"
+
       - name: Install dependencies
         run: npm install
         working-directory: ui
-        
+
       - name: Check Formatting
         run: npm run format:check
         working-directory: ui
-        
+
       - name: Lint & Static Analysis
         run: npm run lint
         working-directory: ui
-        
+
       - name: Unit Tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
         working-directory: ui
-        
+
       - name: Integration Tests
         run: npm run test:integration
         working-directory: ui
@@ -172,14 +171,14 @@ jobs:
   backend-ci:
     name: .NET Validation
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: "9.0.x"
 
       - name: Install dependencies
         run: dotnet restore
@@ -203,7 +202,7 @@ jobs:
       - name: Integration Tests
         # Executes tests decorated with [Trait("Category", "Integration")]
         run: dotnet test --no-build --verbosity normal --filter "Category=Integration" --logger trx --results-directory "TestResults/Integration"
-      
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         # Ensures test results are published even if the tests fail
