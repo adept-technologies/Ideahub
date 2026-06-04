@@ -1346,55 +1346,47 @@
     }
 
     <!-- DELETE SUBTASK CONFIRMATION -->
-    @if (isPendingDeleteSubTask) {
-      <div
-        class="modal-overlay"
-        (click)="cancelDeleteSubTask()"
-        (keydown.escape)="cancelDeleteSubTask()"
-        tabindex="0"
-        role="button"
-        aria-label="Close modal overlay"
-      >
-        <div
-          class="modal-card confirm-modal"
-          (click)="$event.stopPropagation()"
-          (keydown)="$event.stopPropagation()"
-          tabindex="-1"
-        >
-          <div class="modal-header">
-            <h3>Delete Subtask</h3>
-            <button
-              class="close-modal-btn"
-              (click)="cancelDeleteSubTask()"
-              aria-label="Close modal"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+    <app-modal
+      [isOpen]="isPendingDeleteSubTask"
+      title="Delete Subtask"
+      (closeModal)="cancelDeleteSubTask()"
+      size="sm"
+    >
+      <div modal-body class="delete-confirmation-content">
+        @if (hasNestedSubTasks(pendingDeleteSubTaskId)) {
+          <div class="warning-banner">
+            <mat-icon class="warning-icon">warning</mat-icon>
+            <p>
+              This subtask has <strong>nested children</strong>. Deleting it
+              will also remove all nested tasks.
+            </p>
           </div>
-          <div class="modal-body">
-            <div class="confirm-content">
-              <mat-icon class="confirm-icon danger">warning</mat-icon>
-              <p>
-                Are you sure you want to delete
-                <strong>"{{ pendingDeleteSubTaskTitle }}"</strong>? This cannot
-                be undone.
-              </p>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-secondary" (click)="cancelDeleteSubTask()">
-              Cancel
-            </button>
-            <button
-              class="btn-danger"
-              (click)="executeDeleteSubTask()"
-              [disabled]="isDeletingSubTask"
-            >
-              {{ isDeletingSubTask ? "Deleting..." : "Delete Subtask" }}
-            </button>
-          </div>
+        }
+
+        <div class="confirm-content">
+          <p>
+            Are you sure you want to delete
+            <strong>"{{ pendingDeleteSubTaskTitle }}"</strong>? This cannot be
+            undone.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <app-buttons
+            [buttonText]="'Cancel'"
+            [buttonStyleClass]="'btn-reject'"
+            [buttonType]="'button'"
+            (click)="cancelDeleteSubTask()"
+          ></app-buttons>
+          <button
+            class="btn-confirm-delete"
+            (click)="executeDeleteSubTask()"
+            [disabled]="isDeletingSubTask"
+          >
+            {{ isDeletingSubTask ? "Deleting..." : "Delete Subtask" }}
+          </button>
         </div>
       </div>
-    }
+    </app-modal>
   </div>
 </div>

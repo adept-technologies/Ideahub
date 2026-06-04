@@ -392,16 +392,22 @@ public class IdeaController : ControllerBase
             return Unauthorized(ApiResponse.Fail("User Id is null"));
         }
 
-        //fetch idea if user is the idea author
+        var isCommittee = User.IsInRole(Constants.RoleConstants.CommitteeMember);
         var idea = await _context.Ideas
             .Include(i => i.User)
             .Include(i => i.Group)
-            .Where(i => i.UserId == userId)
             .FirstOrDefaultAsync(i => i.Id == ideaId);
+
         if (idea is null)
         {
             _logger.LogError("Idea not found");
             return NotFound(ApiResponse.Fail("Idea not found"));
+        }
+
+        if (idea.UserId != userId && !isCommittee)
+        {
+            _logger.LogError("User {userEmail} is not authorized to update idea {ideaId}", userEmail, ideaId);
+            return Unauthorized(ApiResponse.Fail("You do not have permission to update this idea"));
         }
 
         //apply changes to the idea
