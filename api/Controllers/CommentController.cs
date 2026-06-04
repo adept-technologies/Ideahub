@@ -36,7 +36,7 @@ public class CommentController : ControllerBase
             _logger.LogInformation("Creating new comment...");
 
             //Fetch user info
-            var userEmail = User.FindFirstValue("https://ideahub.api/email")
+            var userEmail = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim)
                            ?? User.FindFirstValue(ClaimTypes.Email)
                            ?? "Email not found";
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -98,7 +98,7 @@ public class CommentController : ControllerBase
     public async Task<IActionResult> ViewComments(int IdeaId)
     {
         //Fetch user
-        var userEmail = User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
+        var userEmail = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -138,7 +138,7 @@ public class CommentController : ControllerBase
     public async Task<IActionResult> DeleteComment(int commentId)
     {
         // Fetch user
-        var userEmail = User.FindFirstValue("https://ideahub.api/email") ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
+        var userEmail = User.FindFirstValue(api.Constants.AuthConstants.EmailClaim) ?? User.FindFirstValue(ClaimTypes.Email) ?? "Email not found";
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {

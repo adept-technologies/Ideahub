@@ -17,6 +17,11 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: adept-technologies/ideahub
 
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
 jobs:
   # ============================================================
   # 1. BUILD & PUSH DOCKER IMAGE (tagged with commit SHA)
@@ -196,13 +201,58 @@ jobs:
             -I \
             -c /zap/wrk/zap.conf \
             --hook /zap/wrk/zap-hooks.py \
-            -r zap_report.html
+            -r zap_report.html \
+            -J report_json.json
 
-      - name: Upload ZAP Report
+      - name: Upload ZAP HTML Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-scan-report
           path: zap_report.html
+
+      - name: Convert ZAP JSON to SARIF
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          from urllib.parse import urlparse
+          try:
+              with open("report_json.json") as f:
+                  zap = json.load(f)
+          except FileNotFoundError:
+              print("report_json.json not found — ZAP may not have completed. Writing empty SARIF.")
+              zap = {"site": []}
+
+          results = []
+          for site in zap.get("site", []):
+              for alert in site.get("alerts", []):
+                  for instance in alert.get("instances", [{"uri": site.get("@name",""), "method":"","param":"","evidence":""}]):
+                      raw_uri = instance.get("uri", "")
+                      parsed = urlparse(raw_uri)
+                      relative_uri = parsed.path.lstrip("/") or "index"
+                      results.append({
+                          "ruleId": str(alert.get("pluginid", "0")),
+                          "message": {"text": alert.get("desc", alert.get("name", ""))},
+                          "locations": [{"physicalLocation": {"artifactLocation": {"uri": relative_uri}}}],
+                          "level": {"High":"error","Medium":"warning","Low":"note","Informational":"none"}.get(alert.get("riskdesc","").split(" ")[0], "none")
+                      })
+
+          sarif = {
+              "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+              "version": "2.1.0",
+              "runs": [{"tool": {"driver": {"name": "OWASP ZAP", "rules": []}}, "results": results}]
+          }
+          with open("results.sarif", "w") as f:
+              json.dump(sarif, f, indent=2)
+          print(f"SARIF written with {len(results)} results.")
+          EOF
+
+      - name: Upload ZAP Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: zap
 
 
   # ============================================================
@@ -225,11 +275,15 @@ jobs:
 
     steps:
       - name: Log approved deployment details
+        env:
+          SAFE_SHA: ${{ needs.build-and-push.outputs.sha_short }}
+          SAFE_IMAGE: ${{ needs.build-and-push.outputs.image_ref }}
+          SAFE_VERSION: ${{ inputs.version || 'not specified — push or schedule trigger' }}
         run: |
           echo "Staging approved. Triggering prod deployment..."
-          echo "SHA: ${{ needs.build-and-push.outputs.sha_short }}"
-          echo "Image: ${{ needs.build-and-push.outputs.image_ref }}"
-          echo "Version: ${{ inputs.version || 'not specified — push or schedule trigger' }}"
+          echo "SHA: $SAFE_SHA"
+          echo "Image: $SAFE_IMAGE"
+          echo "Version: $SAFE_VERSION"
 
       - name: Trigger production deployment
         uses: peter-evans/repository-dispatch@v3
