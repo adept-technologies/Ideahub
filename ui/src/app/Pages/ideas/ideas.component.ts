@@ -431,6 +431,10 @@ export class IdeasComponent implements OnInit, OnDestroy {
             } else {
               this.sortIdeas();
             }
+
+            if (this.ideas.length > 0) {
+              this.fetchAndUpdateVoteCounts();
+            }
           }
         },
         error: () => {
@@ -485,7 +489,7 @@ export class IdeasComponent implements OnInit, OnDestroy {
                   : undefined,
                 voteCount: idea.voteCount || 0,
                 commentCount: 0,
-                userVoted: false,
+                userVoted: idea.userVoted || false,
                 userName: idea.userName || '',
                 userVoteId: undefined,
                 groupName: idea.groupName || '',
@@ -999,10 +1003,11 @@ export class IdeasComponent implements OnInit, OnDestroy {
   }
 
   onUpdateIdeaFromModal(event: IdeaUpdate): void {
-    if (!this.selectedIdea) {
+    if (!this.selectedIdea || this.isSubmitting) {
       return;
     }
 
+    this.isSubmitting = true;
     const updateData: IdeaUpdate = {
       ...event,
       Status: this.selectedIdea.status ?? 'open',
@@ -1010,8 +1015,8 @@ export class IdeasComponent implements OnInit, OnDestroy {
 
     this.ideasService.updateIdea(this.selectedIdea.id, updateData).subscribe({
       next: (response) => {
+        this.isSubmitting = false;
         if (response.success) {
-          // Update the idea in the local array
           const index = this.ideas.findIndex(
             (i) => i.id === this.selectedIdea?.id,
           );
@@ -1024,7 +1029,6 @@ export class IdeasComponent implements OnInit, OnDestroy {
             this.ideas = [...this.ideas];
           }
 
-          // Update selected idea
           if (this.selectedIdea) {
             this.selectedIdea = {
               ...this.selectedIdea,
@@ -1038,10 +1042,8 @@ export class IdeasComponent implements OnInit, OnDestroy {
             } as Idea;
           }
 
-          // Close modal and reset
           this.showShareModal = false;
           this.isEditMode = false;
-
           this.toastService.show('Idea updated successfully!', 'success');
         } else {
           this.toastService.show(
@@ -1051,7 +1053,7 @@ export class IdeasComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        //console.error('Error updating idea from modal:', error);
+        this.isSubmitting = false;
         this.toastService.show(
           'An error occurred while updating the idea.',
           'error',
@@ -1199,11 +1201,11 @@ export class IdeasComponent implements OnInit, OnDestroy {
               updatedAt: new Date(idea.updatedAt || new Date()),
               status: idea.status || 'Open',
               deletedAt: idea.deletedAt ? new Date(idea.deletedAt) : undefined,
-              voteCount: 0,
+              voteCount: idea.voteCount || 0,
               commentCount: 0,
-              userVoted: false,
+              userVoted: idea.userVoted || false,
               userName: idea.userName || '',
-              userVoteId: undefined,
+              userVoteId: idea.userVoteId,
               groupName: idea.groupName || '',
               name: idea.name || '',
               mediaCount: 0,
@@ -1247,6 +1249,10 @@ export class IdeasComponent implements OnInit, OnDestroy {
           } else {
             // For open ideas, use existing sort mode
             this.sortIdeas();
+          }
+
+          if (this.ideas.length > 0) {
+            await this.fetchAndUpdateVoteCounts();
           }
 
           // this.ideas.forEach((idea, index) => {
@@ -1417,6 +1423,8 @@ export class IdeasComponent implements OnInit, OnDestroy {
   }
 
   async onShareIdea(): Promise<void> {
+    if (this.isSubmitting) return;
+
     // Validate form
     if (this.shareIdeaForm.invalid) {
       this.shareIdeaForm.markAllAsTouched();

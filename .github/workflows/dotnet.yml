@@ -17,6 +17,7 @@ jobs:
       - name: Semgrep Scan
         uses: semgrep/semgrep-action@v1
         with:
+          audit: true
           config: >-
             p/default
             p/csharp
@@ -25,8 +26,8 @@ jobs:
             p/security-audit
             p/secrets
         env:
-          SEMGREP_ARGS: --sarif --output=semgrep.sarif
-
+          SEMGREP_ARGS: --sarif --output=semgrep.sarif --disable-nosem --error --include '*'
+          
       - name: Upload SARIF report
         uses: actions/upload-artifact@v4
         if: always()
