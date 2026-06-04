@@ -13,20 +13,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
+      - name: Install Semgrep
+        run: pip install semgrep
+        
       - name: Semgrep Scan
-        uses: semgrep/semgrep-action@v1
-        with:
-          audit: true
-          config: >-
-            p/default
-            p/csharp
-            p/javascript
-            p/typescript
-            p/security-audit
-            p/secrets
-        env:
-          SEMGREP_ARGS: --sarif --output=semgrep.sarif --disable-nosem --error --include '*'
+        run: >
+          semgrep scan
+          --config "p/default"
+          --config "p/csharp"
+          --config "p/javascript"
+          --config "p/typescript"
+          --config "p/security-audit"
+          --config "p/secrets"
+          --sarif --output=semgrep.sarif
           
       - name: Upload SARIF report
         uses: actions/upload-artifact@v4
