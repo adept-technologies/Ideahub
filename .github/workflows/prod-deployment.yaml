@@ -115,16 +115,21 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }} # ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }} # full contents of your .pem file
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            set -e
+
             IMAGE_REF="${{ needs.pre-deploy-checks.outputs.image_ref }}"
             SHA="${{ needs.pre-deploy-checks.outputs.sha_short }}"
             VERSION="${{ needs.pre-deploy-checks.outputs.version }}"
 
             echo "Logging into GHCR..."
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Logging into Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
             echo "Pulling image: $IMAGE_REF"
             docker pull "$IMAGE_REF"
@@ -137,8 +142,6 @@ jobs:
             echo "Deploying with Docker Compose..."
             cd ~/Ideahub
             IMAGE_REF=$IMAGE_REF docker compose up -d
-            # .env is already in ~/Ideahub/ so Compose picks it up automatically
-            # No --build flag — image is pre-built and pulled from GHCR
 
             echo "Production deployment complete — Version: $VERSION  SHA: $SHA  Image: $IMAGE_REF"
 

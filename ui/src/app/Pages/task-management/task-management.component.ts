@@ -30,6 +30,7 @@ import { TimesheetsComponent } from '../timesheets/timesheets.component';
 import { MediaComponent } from '../media/media.component';
 import { ApiResponse } from '../../Interfaces/Api-Response/api-response';
 import { UserRecord } from '../../Interfaces/Users/user-interface';
+import { ModalComponent } from '../../Components/modal/modal.component';
 
 @Component({
   selector: 'app-task-management',
@@ -41,6 +42,7 @@ import { UserRecord } from '../../Interfaces/Users/user-interface';
     ButtonsComponent,
     TimesheetsComponent,
     MediaComponent,
+    ModalComponent,
   ],
   templateUrl: './task-management.component.html',
   styleUrl: './task-management.component.scss',
@@ -468,11 +470,11 @@ export class TaskManagementComponent implements OnInit {
 
         // Task is created — finalize UI immediately regardless of upload outcome
         this.resetForm();
-        this.loadTasks();
         this.isCreating = false;
 
         if (filesToUpload.length === 0) {
           this.toastService.show('Task created successfully', 'success');
+          this.loadTasks();
           return;
         }
 
@@ -507,6 +509,7 @@ export class TaskManagementComponent implements OnInit {
               'success',
             );
           }
+          this.loadTasks();
           this.loadSelectedTaskMediaCount();
         });
       },
@@ -601,12 +604,12 @@ export class TaskManagementComponent implements OnInit {
           if (this.selectedTask && this.selectedTask.id === this.targetTaskId) {
             this.selectedTask.subTasks.push(newSubTaskData);
           }
-          this.loadTasks(); // Full refresh in background
 
           this.isCreatingSubTask = false;
 
           if (filesToUpload.length === 0) {
             this.toastService.show('Subtask created successfully', 'success');
+            this.loadTasks();
             return;
           }
 
@@ -641,6 +644,7 @@ export class TaskManagementComponent implements OnInit {
                 'success',
               );
             }
+            this.loadTasks();
             this.loadSelectedTaskMediaCount();
           });
         },
@@ -1014,9 +1018,16 @@ export class TaskManagementComponent implements OnInit {
 
           // Immediate UI update
           if (this.selectedTask) {
-            this.selectedTask.subTasks = this.selectedTask.subTasks.filter(
-              (st) => st.id !== this.pendingDeleteSubTaskId,
-            );
+            const removeRecursive = (id: number) => {
+              const children = this.selectedTask!.subTasks.filter(
+                (st) => st.parentSubTaskId === id,
+              );
+              children.forEach((c) => removeRecursive(c.id));
+              this.selectedTask!.subTasks = this.selectedTask!.subTasks.filter(
+                (st) => st.id !== id,
+              );
+            };
+            removeRecursive(this.pendingDeleteSubTaskId);
           }
 
           this.cancelDeleteSubTask();
@@ -1034,5 +1045,12 @@ export class TaskManagementComponent implements OnInit {
         this.isDeletingSubTask = false;
       },
     });
+  }
+
+  hasNestedSubTasks(subTaskId: number): boolean {
+    if (!this.selectedTask?.subTasks) return false;
+    return this.selectedTask.subTasks.some(
+      (st) => st.parentSubTaskId === subTaskId,
+    );
   }
 }

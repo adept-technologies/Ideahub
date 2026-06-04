@@ -645,6 +645,9 @@ export class IdeaScoringComponent implements OnInit {
           }
         }
       },
+      error: (err) => {
+        if (err.status !== 404) console.error('Business Case error:', err);
+      },
     });
 
     // Load Phase 3: Scoring Dimensions
@@ -702,6 +705,9 @@ export class IdeaScoringComponent implements OnInit {
           }
         }
       },
+      error: (err) => {
+        if (err.status !== 404) console.error('Scoring Dimensions error:', err);
+      },
     });
   }
 
@@ -732,111 +738,93 @@ export class IdeaScoringComponent implements OnInit {
   }
 
   isSectionLocked(section: 'phase1' | 'phase2' | 'phase3' | 'phase4'): boolean {
+    if (!this.idea) return false;
+
+    const stage = Number(this.idea.currentStage) || 0;
+    const isAccepted = this.isAccepted;
+
+    // Phase 1 is always unlocked
     if (section === 'phase1') return false;
 
+    // Phase 2: Unlocked if Phase 1 score >= 70 or if we've already passed this stage
     if (section === 'phase2') {
+      if (stage >= 1 || isAccepted) return false;
       const p1Score = this.scoringForm.get('Phase1.Score')?.value;
-      return p1Score < 70;
+      return (p1Score || 0) < 70;
     }
 
+    // Phase 3: Unlocked if Phase 2 was approved or if we've already passed this stage
     if (section === 'phase3') {
-      if (this.isSectionLocked('phase2')) return true;
-      const verdict = this.scoringForm.get('Phase2.Verdict')?.value as Verdict;
-      return verdict !== Verdict.Approved;
+      if (stage >= 2 || isAccepted) return false;
+      const verdict = this.scoringForm.get('Phase2.Verdict')?.value;
+      return verdict !== 'Approved';
     }
 
+    // Phase 4: Unlocked only if the idea is Accepted in phase3
     if (section === 'phase4') {
-      return this.isSectionLocked('phase3') || !this.isAccepted;
+      return !isAccepted;
     }
 
     return false;
   }
 
   get totalPhase3Score(): number {
+    // If the idea is already Accepted, use the official score from the database
+    if (this.idea?.score && (this.idea.score > 0 || this.isAccepted)) {
+      // Convert 0-100% back to 0-36 points
+      return Math.round((this.idea.score / 100) * 36);
+    }
+
+    // Otherwise, calculate live from form values
     const p3 = this.scoringForm.get('Phase3')?.value;
     if (!p3) return 0;
 
-    const getMetricScore = (val: string, metric: string): number => {
-      switch (metric) {
-        case 'StrategicAlignment':
-          return val === 'Low'
-            ? 1
-            : val === 'Moderate'
-              ? 2
-              : val === 'Strong'
-                ? 3
-                : 0;
-        case 'CustomerImpact':
-        case 'FinancialBenefit':
-        case 'Scalability':
-        case 'ProjectConfidence':
-          return val === 'Low'
-            ? 1
-            : val === 'Moderate'
-              ? 2
-              : val === 'High'
-                ? 3
-                : 0;
-        case 'Feasibility':
-          return val === 'VeryDifficult'
-            ? 1
-            : val === 'Moderate'
-              ? 2
-              : val === 'High'
-                ? 3
-                : 0;
-        case 'TimeToValue':
-          return val === 'SixToTwelve'
-            ? 1
-            : val === 'ThreeToSix'
-              ? 2
-              : val === 'UnderThreeMonths'
-                ? 3
-                : 0;
-        case 'Cost':
-        case 'Effort':
-        case 'Risk':
-          return val === 'High'
-            ? 1
-            : val === 'Moderate'
-              ? 2
-              : val === 'Low'
-                ? 3
-                : 0;
-        case 'Differentiation':
-          return val === 'LowUniqueness'
-            ? 1
-            : val === 'ModerateUniqueness'
-              ? 2
-              : val === 'HighDifferentiation'
-                ? 3
-                : 0;
-        case 'SustainabilityImpact':
-          return val === 'MinimalBenefit'
-            ? 1
-            : val === 'ModerateBenefit'
-              ? 2
-              : val === 'StrongBenefit'
-                ? 3
-                : 0;
-        default:
-          return 0;
-      }
+    const getScore = (val: string | number | undefined | null): number => {
+      if (val === undefined || val === null || val === '') return 0;
+      const sVal = val.toString();
+      // Match numbers or labels
+      if (
+        sVal.includes('3') ||
+        sVal === 'High' ||
+        sVal === 'Strong' ||
+        sVal === 'UnderThreeMonths' ||
+        sVal === 'HighDifferentiation' ||
+        sVal === 'StrongBenefit'
+      )
+        return 3;
+      if (
+        sVal.includes('2') ||
+        sVal === 'Moderate' ||
+        sVal === 'ThreeToSix' ||
+        sVal === 'ModerateUniqueness' ||
+        sVal === 'ModerateBenefit'
+      )
+        return 2;
+      if (
+        sVal.includes('1') ||
+        sVal === 'Low' ||
+        sVal === 'SixToTwelve' ||
+        sVal === 'VeryDifficult' ||
+        sVal === 'LowUniqueness' ||
+        sVal === 'MinimalBenefit'
+      )
+        return 1;
+      return 0;
     };
 
     return (
-      getMetricScore(p3.StrategicAlignment, 'StrategicAlignment') +
-      getMetricScore(p3.CustomerImpact, 'CustomerImpact') +
-      getMetricScore(p3.FinancialBenefit, 'FinancialBenefit') +
-      getMetricScore(p3.Feasibility, 'Feasibility') +
-      getMetricScore(p3.TimeToValue, 'TimeToValue') +
-      getMetricScore(p3.Cost, 'Cost') +
-      getMetricScore(p3.Effort, 'Effort') +
-      getMetricScore(p3.Risk, 'Risk') +
-      getMetricScore(p3.Scalability, 'Scalability') +
-      getMetricScore(p3.Differentiation, 'Differentiation') +
-      getMetricScore(p3.SustainabilityImpact, 'SustainabilityImpact') +
-      getMetricScore(p3.ProjectConfidence, 'ProjectConfidence')
+      getScore(p3.StrategicAlignment) +
+      getScore(p3.CustomerImpact) +
+      getScore(p3.FinancialBenefit) +
+      getScore(p3.Feasibility) +
+      getScore(p3.TimeToValue) +
+      getScore(p3.Cost) +
+      getScore(p3.Effort) +
+      getScore(p3.Risk) +
+      getScore(p3.Scalability) +
+      getScore(p3.Differentiation) +
+      getScore(p3.SustainabilityImpact) +
+      getScore(p3.ProjectConfidence)
     );
   }
 
