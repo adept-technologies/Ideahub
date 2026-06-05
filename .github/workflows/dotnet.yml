@@ -74,29 +74,9 @@ jobs:
           sleep 40
           curl --fail --retry 10 --retry-delay 5 http://localhost:5065/health || (docker compose logs && exit 1)
 
-      - name: Create CI Test User & Obtain Token
-        id: auth
-        run: |
-          # 1. Register a fresh user inside the ephemeral container
-          curl -s -X POST http://localhost:5065/api/auth/register \
-            -H "Content-Type: application/json" \
-            -d '{"displayName":"CI ZAP", "email":"security-auto-tester@ideahub.local", "password":"Password123!", "confirmPassword":"Password123!"}'
-
-          # 2. Login to get the token
-          RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
-            -H "Content-Type: application/json" \
-            -d '{"email":"security-auto-tester@ideahub.local", "password":"Password123!"}')
-
-          TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
-
-          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Failed to obtain CI auth token. Response: $RESPONSE"
-            exit 1
-          fi
-
-          # Mask the token and set output
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+      # No authentication needed here — this is an ephemeral CI environment.
+      # The real authenticated ZAP scan runs in staging-deployment.yaml against
+      # the live staging server using Auth0 ROPG.
 
       - name: Create ZAP Auth Hook (on-the-fly)
         run: |
@@ -110,20 +90,19 @@ jobs:
           echo "        msg.getRequestHeader().setHeader('Authorization', token)" >> zap-hooks.py
           echo "    return msg" >> zap-hooks.py
 
-      - name: Run ZAP Authenticated Full Scan (CI)
-        # Using the hook for both OpenAPI import and authentication injection
+      - name: Run ZAP Baseline Scan (CI)
+        # Unauthenticated baseline scan on the ephemeral CI environment.
+        # Checks public endpoints and known vulnerability patterns.
         run: |
           touch zap_ci_report.html
           chmod 777 zap_ci_report.html
           docker run --rm --network="host" \
             -u root \
             -v $(pwd):/zap/wrk/:rw \
-            -e ZAP_AUTH_HEADER_VALUE="Bearer ${{ steps.auth.outputs.token }}" \
-            ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:5065 \
             -I \
             -c /zap/wrk/zap.conf \
-            --hook /zap/wrk/zap-hooks.py \
             -r zap_ci_report.html \
             -J report_json.json
 
