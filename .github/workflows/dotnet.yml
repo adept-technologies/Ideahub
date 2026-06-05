@@ -74,9 +74,6 @@ jobs:
           sleep 40
           curl --fail --retry 10 --retry-delay 5 http://localhost:5065/health || (docker compose logs && exit 1)
 
-      # No authentication needed here — this is an ephemeral CI environment.
-      # The real authenticated ZAP scan runs in staging-deployment.yaml against
-      # the live staging server using Auth0 ROPG.
 
       - name: Create ZAP Auth Hook (on-the-fly)
         run: |
@@ -91,8 +88,6 @@ jobs:
           echo "    return msg" >> zap-hooks.py
 
       - name: Run ZAP Baseline Scan (CI)
-        # Unauthenticated baseline scan on the ephemeral CI environment.
-        # Checks public endpoints and known vulnerability patterns.
         run: |
           touch zap_ci_report.html
           chmod 777 zap_ci_report.html
