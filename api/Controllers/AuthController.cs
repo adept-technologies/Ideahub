@@ -65,7 +65,7 @@ public class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly IEmailSender _emailSender;
     private readonly IConfiguration _configuration;
-    private readonly ITokenService _tokenService;
+    // private readonly ITokenService _tokenService; // DEPRECATED: Handled by Auth0
     private readonly IdeahubDbContext _context;
     private readonly IPasswordResetService _passwordResetService;
     private readonly string homepageUrl = Environment.GetEnvironmentVariable("HOMEPAGE_URL") ?? "https://ideahub.adept-techno.co.ke/home";
@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
         ILogger<AuthController> logger,
         IEmailSender emailSender,
         IConfiguration configuration,
-        ITokenService tokenService,
+        // ITokenService tokenService, // DEPRECATED: Handled by Auth0
         IdeahubDbContext context,
         IPasswordResetService passwordResetService
         )
@@ -87,7 +87,7 @@ public class AuthController : ControllerBase
         _logger = logger;
         _emailSender = emailSender;
         _configuration = configuration;
-        _tokenService = tokenService;
+        // _tokenService = tokenService; // DEPRECATED: Handled by Auth0
         _context = context;
         _passwordResetService = passwordResetService;
     }
@@ -260,6 +260,7 @@ public class AuthController : ControllerBase
 
     // }
 
+    /* --- DEPRECATED: Native Login and Refresh Token endpoints replaced by Auth0 ---
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto loginDto)
     {
@@ -452,6 +453,7 @@ public class AuthController : ControllerBase
             RefreshTokenExpiry = newRefreshToken.RefreshTokenExpiry
         }));
     }
+    --------------------------------------------------------------------------------- */
 
     //logout route
     [Authorize]
@@ -472,7 +474,7 @@ public class AuthController : ControllerBase
                 _logger.LogError("Logout failed. User Id not found");
                 return NotFound(ApiResponse.Fail("Logout failed. User Id not found"));
             }
-            await _tokenService.RevokeRefreshTokenAsync(userId);
+            // await _tokenService.RevokeRefreshTokenAsync(userId); // DEPRECATED: Handled by Auth0
             Response.Cookies.Delete("refreshToken"); // Clear rotation cookie
             _logger.LogInformation("Revoked Refresh Token and cleared cookie");
 

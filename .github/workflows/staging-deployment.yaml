@@ -159,23 +159,31 @@ jobs:
         with:
           ref: main
 
-      - name: Obtain JWT Token for Scanning
+      - name: Obtain Auth0 Token for ZAP Scanning
         id: auth
         run: |
-          # Use curl to login to the staging backend and extract the token
-          # We assume the API is at /api/auth/login based on auth.service.ts
-          RESPONSE=$(curl -s -X POST http://localhost:5065/api/auth/login \
+          # Use Auth0 Resource Owner Password Grant (ROPG) to get a real Auth0 token.
+          # This ensures ZAP scans with a token the backend actually accepts,
+          # allowing it to reach all protected endpoints behind [Authorize].
+          RESPONSE=$(curl -s -X POST "https://${{ secrets.AUTH0_DOMAIN }}/oauth/token" \
             -H "Content-Type: application/json" \
-            -d "{\"email\":\"${{ secrets.STAGING_ZAP_USER }}\",\"password\":\"${{ secrets.STAGING_ZAP_PASSWORD }}\"}")
-          
-          # Extract accessToken using jq
-          TOKEN=$(echo $RESPONSE | jq -r '.data.accessToken')
-          
+            -d "{\
+              \"grant_type\": \"password\",\
+              \"username\": \"${{ secrets.STAGING_ZAP_USER }}\",\
+              \"password\": \"${{ secrets.STAGING_ZAP_PASSWORD }}\",\
+              \"audience\": \"https://api.ideahub\",\
+              \"client_id\": \"${{ secrets.AUTH0_CLIENT_ID }}\",\
+              \"client_secret\": \"${{ secrets.AUTH0_CLIENT_SECRET }}\",\
+              \"scope\": \"openid profile email\"\
+            }")
+
+          TOKEN=$(echo $RESPONSE | jq -r '.access_token')
+
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Failed to obtain auth token. API returned an error or empty token."
+            echo "Failed to obtain Auth0 token. Response: $RESPONSE"
             exit 1
           fi
-          
+
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
