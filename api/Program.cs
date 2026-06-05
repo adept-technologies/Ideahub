@@ -271,7 +271,7 @@ builder.Services.Configure<SendGridSettings>(options =>
 });
 
 //2.10 IToken Service
-builder.Services.AddScoped<ITokenService, TokenService>();
+// builder.Services.AddScoped<ITokenService, TokenService>(); // DEPRECATED: Handled by Auth0
 
 // 2.11 Claims Transformation for Auth0 -> Local ID mapping
 builder.Services.AddTransient<IClaimsTransformation, UserSyncClaimsTransformation>();
