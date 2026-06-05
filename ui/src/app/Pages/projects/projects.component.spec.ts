@@ -30,8 +30,6 @@ describe('ProjectsComponent', () => {
   beforeEach(async () => {
     // Generate dates relative to current local time for accurate due week tests
     const now = new Date();
-    const twoDaysLater = new Date(now);
-    twoDaysLater.setDate(now.getDate() + 2);
 
     mockProjects = [
       {
@@ -40,7 +38,7 @@ describe('ProjectsComponent', () => {
         description: 'Migrating legacy edge firewalls to cloud proxy clusters.',
         status: ProjectStatus.Active,
         createdAt: '2026-01-01T12:00:00Z',
-        endedAt: twoDaysLater.toISOString(), // Within current week
+        endedAt: now.toISOString(), // Guaranteed to be within current week
         overseenBy: 'Alice Vance',
         overseenById: 'u1',
         progress: 60,
