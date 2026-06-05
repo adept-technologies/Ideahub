@@ -24,7 +24,7 @@ namespace Ideahub.Tests
         private readonly Mock<SignInManager<IdeahubUser>> _mockSignInManager;
         private readonly Mock<ILogger<AuthController>> _mockLogger;
         private readonly Mock<IEmailSender> _mockEmailSender;
-        private readonly Mock<ITokenService> _mockTokenService;
+        // private readonly Mock<ITokenService> _mockTokenService; // DEPRECATED
         private readonly Mock<IPasswordResetService> _mockPasswordResetService;
         private readonly IConfiguration _configuration;
         private readonly AuthController _controller;
@@ -49,7 +49,7 @@ namespace Ideahub.Tests
 
             _mockLogger = new Mock<ILogger<AuthController>>();
             _mockEmailSender = new Mock<IEmailSender>();
-            _mockTokenService = new Mock<ITokenService>();
+            // _mockTokenService = new Mock<ITokenService>(); // DEPRECATED
             _mockPasswordResetService = new Mock<IPasswordResetService>();
 
             var myConfiguration = new Dictionary<string, string?> { { "Jwt:Expiry", "15" } };
@@ -61,7 +61,6 @@ namespace Ideahub.Tests
                 _mockLogger.Object,
                 _mockEmailSender.Object,
                 _configuration,
-                _mockTokenService.Object,
                 _context,
                 _mockPasswordResetService.Object
             )
@@ -121,6 +120,7 @@ namespace Ideahub.Tests
 
         #endregion
 
+        /* --- DEPRECATED: Native Login and Refresh endpoints replaced by Auth0 ---
         #region Login
 
         [Fact]
@@ -248,6 +248,7 @@ namespace Ideahub.Tests
         }
 
         #endregion
+        --------------------------------------------------------------------------------- */
 
         #region Logout
 
@@ -264,7 +265,7 @@ namespace Ideahub.Tests
             // Assert
             Assert.IsType<OkObjectResult>(result);
             _mockSignInManager.Verify(m => m.SignOutAsync(), Times.Once);
-            _mockTokenService.Verify(t => t.RevokeRefreshTokenAsync("u1"), Times.Once);
+            // _mockTokenService.Verify(t => t.RevokeRefreshTokenAsync("u1"), Times.Once); // DEPRECATED
             Assert.Contains("refreshToken=; expires=", _controller.Response.Headers["Set-Cookie"].ToString()); // Cookie cleared
         }
 
